@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import SignInButton from "./SignInButton";
 import SampleEmbed from "./SampleEmbed";
 import ArchetypeShowcase from "./ArchetypeShowcase";
+import ContributionGridBg from "./ContributionGridBg";
 
 const SAMPLE_PATH = "/u/Hitesh-Meghwal/2026";
 
@@ -40,12 +41,7 @@ export default async function LandingPage({
 
   return (
     <main className="relative min-h-screen overflow-hidden">
-      {/* Background — large diffuse blobs for the Spotify-Wrapped vibe. */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute top-[-15%] left-[-10%] h-[60vh] w-[60vh] rounded-full bg-emerald-500/30 blur-[120px]" />
-        <div className="absolute top-[20%] right-[-15%] h-[55vh] w-[55vh] rounded-full bg-pink-500/25 blur-[140px]" />
-        <div className="absolute bottom-[-20%] left-[20%] h-[55vh] w-[55vh] rounded-full bg-violet-500/30 blur-[140px]" />
-      </div>
+      <ContributionGridBg />
 
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-5 sm:px-10">
@@ -70,9 +66,15 @@ export default async function LandingPage({
       {/* Hero */}
       <section className="px-6 pt-10 pb-16 sm:pt-16 sm:pb-24">
         <div className="mx-auto max-w-5xl text-center">
-          <p className="uppercase tracking-[0.3em] text-xs text-emerald-300 mb-6">
-            Spotify Wrapped · for your git history
-          </p>
+          <div className="inline-flex items-center gap-2 rounded-md border border-neutral-800 bg-neutral-950/70 px-3 py-1.5 mb-6 font-mono text-[12px] sm:text-[13px] text-neutral-400 backdrop-blur-sm">
+            <span className="text-emerald-400">$</span>
+            <span>yearincode</span>
+            <span className="text-neutral-600">--user</span>
+            <span className="text-emerald-300">
+              @{githubLogin ?? "you"}
+            </span>
+            <span className="inline-block h-3.5 w-[2px] bg-neutral-300 animate-pulse" />
+          </div>
           <h1 className="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight leading-[0.95]">
             Your{" "}
             <span className="bg-gradient-to-br from-emerald-300 via-pink-400 to-violet-400 bg-clip-text text-transparent">
