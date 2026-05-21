@@ -51,11 +51,7 @@ export default async function LandingPage({
         </div>
         {user ? (
           <Link
-            href={
-              githubLogin
-                ? `/u/${githubLogin}/${new Date().getUTCFullYear()}`
-                : "/me"
-            }
+            href="/generate"
             className="text-sm text-neutral-300 hover:text-white transition-colors"
           >
             Your wrapped →
@@ -92,14 +88,10 @@ export default async function LandingPage({
           <div className="mt-8 flex flex-col items-center gap-3">
             {user ? (
               <Link
-                href={
-                  githubLogin
-                    ? `/u/${githubLogin}/${new Date().getUTCFullYear()}`
-                    : "/me"
-                }
+                href="/generate"
                 className="inline-flex items-center justify-center rounded-full bg-white text-black px-6 py-3 text-base font-semibold hover:bg-neutral-200 transition-colors"
               >
-                View your wrapped →
+                {githubLogin ? "View your wrapped →" : "Continue →"}
               </Link>
             ) : (
               <SignInButton />

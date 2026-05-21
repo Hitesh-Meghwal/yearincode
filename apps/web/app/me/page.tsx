@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SignOutButton from "./SignOutButton";
@@ -46,7 +47,16 @@ export default async function MePage() {
             <p className="text-neutral-500 text-sm">{user.email}</p>
           ) : null}
         </div>
-        <SignOutButton />
+
+        <div className="flex flex-col items-center gap-3 pt-2">
+          <Link
+            href="/generate"
+            className="inline-flex items-center justify-center rounded-full bg-white text-black px-6 py-3 text-base font-semibold hover:bg-neutral-200 transition-colors"
+          >
+            {githubUsername ? "View your wrapped →" : "Generate wrapped →"}
+          </Link>
+          <SignOutButton />
+        </div>
       </div>
     </main>
   );

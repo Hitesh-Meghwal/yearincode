@@ -16,7 +16,7 @@ export default function SignInButton() {
     const { error: signInError } = await supabase.auth.signInWithOAuth({
       provider: "github",
       options: {
-        redirectTo: `${siteUrl}/auth/callback?next=/me`,
+        redirectTo: `${siteUrl}/auth/callback?next=/generate`,
         scopes: "read:user user:email read:org repo",
       },
     });
