@@ -1,14 +1,14 @@
-// Small marketing strip on the landing page that explains the "vibe check"
-// (PRD §4.5). Hand-picked subset of the 15 archetypes — punchy mix of
-// rarities — with a one-line "trigger" so visitors get the gist.
+// Marketing strip on the landing page that explains the "vibe check"
+// (PRD §4.5). All 15 archetypes in the priority order the rules engine
+// evaluates — first match wins.
 
 type Card = {
   emoji: string;
   name: string;
   trigger: string;
   rarity: "common" | "uncommon" | "rare" | "legendary";
-  accent: string; // tailwind text color class
-  bg: string;    // tailwind background tint class
+  accent: string; // tailwind text color
+  bg: string;    // tailwind background tint
 };
 
 const CARDS: Card[] = [
@@ -37,6 +37,14 @@ const CARDS: Card[] = [
     bg: "from-cyan-500/15 to-transparent",
   },
   {
+    emoji: "🔥",
+    name: "The Refactorer",
+    trigger: "Deletions outweigh additions by 1.5×.",
+    rarity: "rare",
+    accent: "text-orange-300",
+    bg: "from-orange-500/15 to-transparent",
+  },
+  {
     emoji: "🌍",
     name: "The Polyglot",
     trigger: "No single language above 40%, 4+ in rotation.",
@@ -45,12 +53,28 @@ const CARDS: Card[] = [
     bg: "from-emerald-500/15 to-transparent",
   },
   {
-    emoji: "🔥",
-    name: "The Refactorer",
-    trigger: "Deletions outweigh additions by 1.5×.",
-    rarity: "rare",
-    accent: "text-orange-300",
-    bg: "from-orange-500/15 to-transparent",
+    emoji: "🗿",
+    name: "The Monolith",
+    trigger: "70%+ of your commits in a single repo.",
+    rarity: "common",
+    accent: "text-stone-300",
+    bg: "from-stone-500/15 to-transparent",
+  },
+  {
+    emoji: "🌅",
+    name: "The Dawn Patrol",
+    trigger: "First commit lands between 5 and 9 AM.",
+    rarity: "uncommon",
+    accent: "text-amber-300",
+    bg: "from-amber-500/15 to-transparent",
+  },
+  {
+    emoji: "🥪",
+    name: "The Lunch Hour Hero",
+    trigger: "Peaks between noon and 1 PM. Side projects don't build themselves.",
+    rarity: "common",
+    accent: "text-lime-300",
+    bg: "from-lime-500/15 to-transparent",
   },
   {
     emoji: "🏃",
@@ -61,9 +85,33 @@ const CARDS: Card[] = [
     bg: "from-pink-500/15 to-transparent",
   },
   {
+    emoji: "💨",
+    name: "The Sprinter",
+    trigger: "Shipped 50+ commits in a single day. When you ship, you SHIP.",
+    rarity: "uncommon",
+    accent: "text-sky-300",
+    bg: "from-sky-500/15 to-transparent",
+  },
+  {
+    emoji: "📈",
+    name: "The Consistent One",
+    trigger: "Active 250+ days out of 365. Discipline is a superpower.",
+    rarity: "rare",
+    accent: "text-teal-300",
+    bg: "from-teal-500/15 to-transparent",
+  },
+  {
+    emoji: "🤝",
+    name: "The Social Coder",
+    trigger: "50+ shared commits with one person. Team sport energy.",
+    rarity: "common",
+    accent: "text-rose-300",
+    bg: "from-rose-500/15 to-transparent",
+  },
+  {
     emoji: "🐺",
     name: "The Lone Wolf",
-    trigger: "You shipped this year with zero co-committers.",
+    trigger: "Shipped this year with zero co-committers.",
     rarity: "common",
     accent: "text-zinc-200",
     bg: "from-zinc-500/15 to-transparent",
@@ -75,6 +123,14 @@ const CARDS: Card[] = [
     rarity: "legendary",
     accent: "text-yellow-300",
     bg: "from-yellow-500/15 to-transparent",
+  },
+  {
+    emoji: "🔨",
+    name: "The Builder",
+    trigger: "Heads down, shipping. No single pattern dominated — pure execution.",
+    rarity: "common",
+    accent: "text-blue-300",
+    bg: "from-blue-500/15 to-transparent",
   },
 ];
 
@@ -98,13 +154,12 @@ export default function ArchetypeShowcase() {
           </h2>
           <p className="mt-4 text-neutral-300 max-w-2xl mx-auto">
             We crunch your commit patterns — when you ship, what you ship, how
-            much you delete — and crown you with one of 15 archetypes. From
-            Night Owl Refactorer to Globe Trotter. The rarer ones are hard to
-            earn.
+            much you delete — and crown you with one of 15 archetypes. Rules
+            are evaluated in priority order; first match wins.
           </p>
         </div>
 
-        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {CARDS.map((card) => (
             <li
               key={card.name}
@@ -123,10 +178,6 @@ export default function ArchetypeShowcase() {
             </li>
           ))}
         </ul>
-
-        <p className="mt-6 text-center text-xs text-neutral-500">
-          + 7 more archetypes waiting to be unlocked.
-        </p>
       </div>
     </section>
   );

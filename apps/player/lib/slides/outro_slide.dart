@@ -10,6 +10,9 @@ class OutroSlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Recap-only outro. Real share buttons live in the parent Next.js page
+    // and reveal after `wrapped:ended` postMessage — keeping them out of the
+    // player avoids duplicate (and non-functional) share UI inside the iframe.
     return SlideScaffold(
       theme: theme,
       child: Center(
@@ -72,38 +75,23 @@ class OutroSlide extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 36),
             FadeIn(
               delay: const Duration(milliseconds: 1100),
-              child: const Text(
-                'Share your wrapped',
+              child: Text(
+                'That was your year.',
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
+                  color: theme.secondary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             FadeIn(
-              delay: const Duration(milliseconds: 1400),
-              child: Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                alignment: WrapAlignment.center,
-                children: [
-                  _SharePill(label: 'X', color: theme.primary),
-                  _SharePill(label: 'LinkedIn', color: theme.primary),
-                  _SharePill(label: 'Reddit', color: theme.primary),
-                  _SharePill(label: 'Copy link', color: theme.secondary),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-            FadeIn(
-              delay: const Duration(milliseconds: 1800),
+              delay: const Duration(milliseconds: 1500),
               child: const Text(
-                'Generate yours → yearincode.com',
+                'yearincode.com',
                 style: TextStyle(color: Colors.white54, fontSize: 13),
               ),
             ),
@@ -135,27 +123,6 @@ class _StatRow extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _SharePill extends StatelessWidget {
-  final String label;
-  final Color color;
-  const _SharePill({required this.label, required this.color});
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.4)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(color: color, fontWeight: FontWeight.w600),
-      ),
     );
   }
 }
