@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="/player/">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="yearincode animated wrapped player">
+
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="yearincode player">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>yearincode</title>
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    /* Flutter mounts a <flt-glass-pane> + <flutter-view>; fill the viewport. */
+    flutter-view, flt-glass-pane {
+      width: 100% !important;
+      height: 100% !important;
+    }
+  </style>
+
+  <script>
+    // Exposed to Dart via JS interop. Notifies the parent window (e.g. the
+    // Next.js share page) that the wrapped animation finished.
+    window.notifyWrappedEnded = function () {
+      try {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: 'wrapped:ended' }, '*');
+        }
+      } catch (e) {
+        console.warn('postMessage to parent failed', e);
+      }
+    };
+  </script>
+</head>
+<body>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
