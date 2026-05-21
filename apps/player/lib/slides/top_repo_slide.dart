@@ -13,6 +13,7 @@ class TopRepoSlide extends StatelessWidget {
     final repo = stats.topRepos.isNotEmpty ? stats.topRepos.first : null;
     return SlideScaffold(
       theme: theme,
+      backgroundSeed: 71,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -52,18 +53,32 @@ class TopRepoSlide extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    Text(
-                      '${repo?.commits ?? 0}',
-                      style: TextStyle(
-                        color: theme.primary,
-                        fontSize: 64,
-                        fontWeight: FontWeight.w900,
-                        height: 1.0,
+                    ShaderMask(
+                      shaderCallback: (rect) => LinearGradient(
+                        colors: [theme.primary, theme.secondary],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ).createShader(rect),
+                      child: Text(
+                        '${repo?.commits ?? 0}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 92,
+                          fontWeight: FontWeight.w900,
+                          height: 0.9,
+                          letterSpacing: -3,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text('commits',
-                        style: TextStyle(color: Colors.white60)),
+                    const Text(
+                      'commits',
+                      style: TextStyle(
+                        color: Colors.white60,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     if (repo?.isPrivate ?? false) ...[
                       const SizedBox(height: 12),
                       Container(

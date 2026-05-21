@@ -46,6 +46,7 @@ class _CollaboratorSlideState extends State<CollaboratorSlide>
 
     return SlideScaffold(
       theme: theme,
+      backgroundSeed: 127,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

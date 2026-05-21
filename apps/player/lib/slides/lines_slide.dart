@@ -46,6 +46,7 @@ class _LinesSlideState extends State<LinesSlide>
 
     return SlideScaffold(
       theme: theme,
+      backgroundSeed: 103,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

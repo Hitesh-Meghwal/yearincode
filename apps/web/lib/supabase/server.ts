@@ -1,4 +1,5 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 export async function createClient() {
@@ -30,4 +31,50 @@ export async function createClient() {
       },
     },
   );
+}
+
+/**
+ * `supabase.auth.getUser()` throws an AuthApiError when the refresh token in
+ * the cookie is invalid (e.g. user signed out elsewhere, or Supabase rotated
+ * keys). For our purposes, an unreadable session = no user — never an
+ * exception that crashes a server component. Use this everywhere instead of
+ * calling `getUser()` directly.
+ */
+export async function getUserSafe(
+  supabase: SupabaseClient,
+): Promise<User | null> {
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error) {
+      console.warn("[auth] getUser returned error:", error.message);
+      return null;
+    }
+    return data.user;
+  } catch (err) {
+    console.warn(
+      "[auth] getUser threw:",
+      err instanceof Error ? err.message : err,
+    );
+    return null;
+  }
+}
+
+/** Same defensive wrapper for getSession(). */
+export async function getSessionSafe(
+  supabase: SupabaseClient,
+): Promise<Session | null> {
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      console.warn("[auth] getSession returned error:", error.message);
+      return null;
+    }
+    return data.session;
+  } catch (err) {
+    console.warn(
+      "[auth] getSession threw:",
+      err instanceof Error ? err.message : err,
+    );
+    return null;
+  }
 }

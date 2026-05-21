@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUserSafe } from "@/lib/supabase/server";
 import SignInButton from "./SignInButton";
 import SampleEmbed from "./SampleEmbed";
 import ArchetypeShowcase from "./ArchetypeShowcase";
@@ -13,9 +13,7 @@ export default async function LandingPage({
   searchParams: Promise<{ error?: string }>;
 }) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUserSafe(supabase);
   const githubLogin =
     (user?.user_metadata?.user_name as string | undefined) ??
     (user?.user_metadata?.preferred_username as string | undefined);
@@ -45,10 +43,14 @@ export default async function LandingPage({
 
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-5 sm:px-10">
-        <div className="flex items-center gap-2">
-          <span className="inline-block h-3 w-3 rounded-full bg-emerald-400" />
-          <span className="font-semibold tracking-tight">yearincode</span>
-        </div>
+        <Link href="/" aria-label="yearincode home" className="block">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/yearincode-logo.svg"
+            alt="yearincode"
+            className="h-10 w-auto sm:h-12"
+          />
+        </Link>
         {user ? (
           <Link
             href="/generate"

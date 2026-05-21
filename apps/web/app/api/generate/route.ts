@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { aggregateWrappedStats } from "@/lib/aggregator";
 import { GitHubApiError } from "@/lib/github/client";
 import { fetchWrappedData } from "@/lib/github/fetchCommits";
-import { createClient } from "@/lib/supabase/server";
+import {
+  createClient,
+  getSessionSafe,
+  getUserSafe,
+} from "@/lib/supabase/server";
 import type { WrappedStats } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -30,12 +34,8 @@ async function runGeneration(): Promise<
 > {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError || !user) {
+  const user = await getUserSafe(supabase);
+  if (!user) {
     return {
       ok: false,
       status: 401,
@@ -43,20 +43,7 @@ async function runGeneration(): Promise<
     };
   }
 
-  const {
-    data: { session },
-    error: sessionError,
-  } = await supabase.auth.getSession();
-
-  if (sessionError) {
-    console.error("[api/generate] getSession failed", sessionError);
-    return {
-      ok: false,
-      status: 500,
-      payload: { error: "session_error", detail: sessionError.message },
-    };
-  }
-
+  const session = await getSessionSafe(supabase);
   const providerToken = session?.provider_token;
   if (!providerToken) {
     return {

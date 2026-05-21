@@ -1,16 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUserSafe } from "@/lib/supabase/server";
 import SignOutButton from "./SignOutButton";
 
 export default async function MePage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+  const user = await getUserSafe(supabase);
 
-  if (error || !user) {
+  if (!user) {
     redirect("/");
   }
 

@@ -33,6 +33,7 @@ class LanguagesSlide extends StatelessWidget {
 
     return SlideScaffold(
       theme: theme,
+      backgroundSeed: 113,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

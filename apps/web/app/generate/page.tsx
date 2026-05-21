@@ -1,14 +1,12 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUserSafe } from "@/lib/supabase/server";
 import GenerateClient from "./GenerateClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function GeneratePage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUserSafe(supabase);
 
   if (!user) {
     redirect("/");

@@ -51,6 +51,7 @@ class _PeakHourSlideState extends State<PeakHourSlide>
     final theme = widget.theme;
     return SlideScaffold(
       theme: theme,
+      backgroundSeed: 89,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -75,12 +76,20 @@ class _PeakHourSlideState extends State<PeakHourSlide>
               ),
             ),
             const SizedBox(height: 24),
-            Text(
-              '${stats.peakHour.toString().padLeft(2, '0')}:00',
-              style: TextStyle(
-                color: theme.primary,
-                fontSize: 56,
-                fontWeight: FontWeight.w900,
+            ShaderMask(
+              shaderCallback: (rect) => LinearGradient(
+                colors: [theme.primary, theme.secondary],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ).createShader(rect),
+              child: Text(
+                '${stats.peakHour.toString().padLeft(2, '0')}:00',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 84,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -2,
+                ),
               ),
             ),
             const SizedBox(height: 4),
