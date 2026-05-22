@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient, getUserSafe } from "@/lib/supabase/server";
+import DeleteWrappedButton from "./DeleteWrappedButton";
 import SignOutButton from "./SignOutButton";
+
+export const dynamic = "force-dynamic";
 
 export default async function MePage() {
   const supabase = await createClient();
@@ -16,6 +19,16 @@ export default async function MePage() {
     meta.user_name ?? meta.preferred_username ?? meta.login;
   const avatarUrl: string | undefined = meta.avatar_url;
   const fullName: string | undefined = meta.full_name ?? meta.name;
+
+  // Look up the user's most recent wrapped — drives both the View/Generate
+  // CTA copy and whether to show the Delete button.
+  const { data: ownedWrapped } = await supabase
+    .from("wrapped_reports")
+    .select("id, year")
+    .eq("user_id", user.id)
+    .order("year", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-6 py-16">
@@ -50,10 +63,22 @@ export default async function MePage() {
             href="/generate"
             className="inline-flex items-center justify-center rounded-full bg-white text-black px-6 py-3 text-base font-semibold hover:bg-neutral-200 transition-colors"
           >
-            {githubUsername ? "View your wrapped →" : "Generate wrapped →"}
+            {ownedWrapped ? "View your wrapped →" : "Generate wrapped →"}
           </Link>
           <SignOutButton />
         </div>
+
+        {ownedWrapped ? (
+          <div className="pt-6 mt-6 border-t border-neutral-900 flex flex-col items-center gap-2">
+            <p className="text-xs text-neutral-500 uppercase tracking-widest">
+              Danger zone
+            </p>
+            <DeleteWrappedButton
+              wrappedId={ownedWrapped.id}
+              wrappedYear={ownedWrapped.year}
+            />
+          </div>
+        ) : null}
       </div>
     </main>
   );

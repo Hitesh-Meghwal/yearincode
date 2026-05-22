@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'motion.dart';
 
 /// Slow-drifting soft color blobs + a faint grain layer. Sits behind every
 /// slide's content so the screen always feels alive — no dead static
@@ -28,6 +29,7 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final List<_Blob> _blobs;
+  bool _started = false;
 
   @override
   void initState() {
@@ -35,7 +37,7 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 18),
-    )..repeat();
+    );
     final rng = math.Random(widget.seed);
     _blobs = List.generate(widget.blobCount, (i) {
       final color = i.isEven ? widget.primary : widget.secondary;
@@ -50,6 +52,16 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
         opacity: 0.18 + rng.nextDouble() * 0.18,
       );
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (!reduceMotionOf(context)) {
+      _controller.repeat();
+    }
   }
 
   @override

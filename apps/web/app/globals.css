@@ -16,3 +16,18 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
 }
+
+/* PRD §5.5 — respect the user's reduced-motion preference. Globally
+   neutralise CSS animations and transitions so the landing's animated
+   pulses, fades, and spinners don't fire. The Flutter player has its own
+   handling via MediaQuery.disableAnimations. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

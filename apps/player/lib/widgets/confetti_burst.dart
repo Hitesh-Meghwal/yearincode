@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'motion.dart';
 
 /// One-shot confetti burst from the top of its bounds. Particles fall with
 /// gravity, rotate, and fade. Pure CustomPaint — no dependencies.
@@ -56,6 +57,10 @@ class _ConfettiBurstState extends State<ConfettiBurst>
 
   @override
   Widget build(BuildContext context) {
+    // Confetti is pure decoration — under reduced motion we skip it entirely.
+    if (reduceMotionOf(context)) {
+      return const SizedBox.shrink();
+    }
     return IgnorePointer(
       child: AnimatedBuilder(
         animation: _controller,

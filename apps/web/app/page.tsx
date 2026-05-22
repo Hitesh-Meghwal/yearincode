@@ -161,8 +161,19 @@ export default async function LandingPage({
         </div>
       </section>
 
-      <footer className="px-6 pb-10 text-center text-xs text-neutral-500">
-        Built for developers · open-source friendly · {new Date().getFullYear()}
+      <footer className="px-6 pb-10 text-center text-xs text-neutral-500 space-y-2">
+        <div>
+          Built for developers · open-source friendly · {new Date().getFullYear()}
+        </div>
+        <div className="flex items-center justify-center gap-4">
+          <Link href="/privacy" className="hover:text-neutral-300 transition-colors">
+            Privacy
+          </Link>
+          <span className="text-neutral-700">·</span>
+          <Link href="/terms" className="hover:text-neutral-300 transition-colors">
+            Terms
+          </Link>
+        </div>
       </footer>
     </main>
   );

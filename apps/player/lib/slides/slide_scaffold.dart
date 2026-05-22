@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../themes/archetype_themes.dart';
 import '../widgets/animated_background.dart';
+import '../widgets/motion.dart';
 
 /// Shared chrome for every slide. Drifting background + grain + safe-area
 /// padding. Child = whatever the slide wants to render on top.
@@ -130,12 +131,24 @@ class _FadeInState extends State<FadeIn>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late Animation<double> _anim;
+  bool _started = false;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(vsync: this, duration: widget.duration);
     _anim = CurvedAnimation(parent: _controller, curve: widget.curve);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (reduceMotionOf(context)) {
+      _controller.value = 1.0;
+      return;
+    }
     Future.delayed(widget.delay, () {
       if (mounted) _controller.forward();
     });
@@ -189,12 +202,24 @@ class _ScaleInState extends State<ScaleIn>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late Animation<double> _anim;
+  bool _started = false;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(vsync: this, duration: widget.duration);
     _anim = CurvedAnimation(parent: _controller, curve: Curves.easeOutBack);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (reduceMotionOf(context)) {
+      _controller.value = 1.0;
+      return;
+    }
     Future.delayed(widget.delay, () {
       if (mounted) _controller.forward();
     });
@@ -242,12 +267,22 @@ class GentlePulse extends StatefulWidget {
 class _GentlePulseState extends State<GentlePulse>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
+  bool _started = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: widget.period)
-      ..repeat(reverse: true);
+    _controller = AnimationController(vsync: this, duration: widget.period);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (!reduceMotionOf(context)) {
+      _controller.repeat(reverse: true);
+    }
   }
 
   @override
@@ -258,6 +293,9 @@ class _GentlePulseState extends State<GentlePulse>
 
   @override
   Widget build(BuildContext context) {
+    if (reduceMotionOf(context)) {
+      return widget.child;
+    }
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
