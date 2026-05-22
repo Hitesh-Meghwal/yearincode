@@ -43,13 +43,21 @@ export default async function LandingPage({
 
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-5 sm:px-10">
-        <Link href="/" aria-label="yearincode home" className="block">
+        <Link
+          href="/"
+          aria-label="yearincode home"
+          className="flex items-center gap-2.5"
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/yearincode-logo.svg"
-            alt="yearincode"
-            className="h-10 w-auto sm:h-12"
+            alt=""
+            aria-hidden="true"
+            className="h-8 w-8 sm:h-9 sm:w-9"
           />
+          <span className="font-semibold tracking-tight text-base sm:text-lg">
+            yearincode
+          </span>
         </Link>
         {user ? (
           <Link
