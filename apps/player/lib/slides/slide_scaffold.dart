@@ -22,19 +22,24 @@ class SlideScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        AnimatedBackground(
-          primary: theme.primary,
-          secondary: theme.secondary,
-          background: theme.background,
-          seed: backgroundSeed,
-        ),
-        SafeArea(
-          child: Padding(padding: padding, child: child),
-        ),
-      ],
+    // ClipRect is the final safety net — any Positioned that extends past the
+    // 540×960 design canvas gets clipped at the slide boundary instead of
+    // visually bleeding into the next slide or overflowing the viewport.
+    return ClipRect(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          AnimatedBackground(
+            primary: theme.primary,
+            secondary: theme.secondary,
+            background: theme.background,
+            seed: backgroundSeed,
+          ),
+          SafeArea(
+            child: Padding(padding: padding, child: child),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -65,7 +70,7 @@ class HeroNumber extends StatelessWidget {
           color: Colors.white,
           fontSize: 120,
           fontWeight: FontWeight.w900,
-          height: 0.95,
+          height: 1.0,
           letterSpacing: -3,
         ),
         child: child,
@@ -149,7 +154,12 @@ class _FadeInState extends State<FadeIn>
       _controller.value = 1.0;
       return;
     }
-    Future.delayed(widget.delay, () {
+    // Cap per-element delays so bottom-positioned content settles in well
+    // before the slide auto-advances. Individual slides can still pass
+    // longer delays for narrative effect; we just don't let any single
+    // element wait more than 350ms before its animation starts.
+    final cappedMs = widget.delay.inMilliseconds.clamp(0, 350);
+    Future.delayed(Duration(milliseconds: cappedMs), () {
       if (mounted) _controller.forward();
     });
   }
@@ -220,7 +230,12 @@ class _ScaleInState extends State<ScaleIn>
       _controller.value = 1.0;
       return;
     }
-    Future.delayed(widget.delay, () {
+    // Cap per-element delays so bottom-positioned content settles in well
+    // before the slide auto-advances. Individual slides can still pass
+    // longer delays for narrative effect; we just don't let any single
+    // element wait more than 350ms before its animation starts.
+    final cappedMs = widget.delay.inMilliseconds.clamp(0, 350);
+    Future.delayed(Duration(milliseconds: cappedMs), () {
       if (mounted) _controller.forward();
     });
   }

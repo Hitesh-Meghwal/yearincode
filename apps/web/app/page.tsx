@@ -35,6 +35,23 @@ export default async function LandingPage({
     sampleStats = sample?.stats_json ?? null;
   }
 
+  // Aggregate stats for the social-proof line. Requires the
+  // public_wrapped_stats RPC from 0003_public_wrapped_stats_rpc.sql; if the
+  // migration hasn't been applied yet we silently hide the strip.
+  const { data: globalStats } = await supabase
+    .rpc("public_wrapped_stats")
+    .maybeSingle();
+  const totalWrappeds = Number(
+    (globalStats as { total_wrappeds?: number | string } | null)
+      ?.total_wrappeds ?? 0,
+  );
+  const totalViews = Number(
+    (globalStats as { total_views?: number | string } | null)?.total_views ??
+      0,
+  );
+  const fmtCount = (n: number) =>
+    new Intl.NumberFormat("en-US").format(n);
+
   const params = await searchParams;
 
   return (
@@ -112,6 +129,24 @@ export default async function LandingPage({
             <p className="text-xs text-neutral-500">
               free · public + private repos · we never see your code, only metadata
             </p>
+            {totalWrappeds > 0 ? (
+              <p className="font-mono text-[12px] text-neutral-400 mt-2 flex items-center gap-2">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-emerald-300">
+                  {fmtCount(totalWrappeds)}
+                </span>
+                <span className="text-neutral-600">
+                  wrapped{totalWrappeds === 1 ? "" : "s"} generated
+                </span>
+                <span className="text-neutral-700">·</span>
+                <span className="text-emerald-300">
+                  {fmtCount(totalViews)}
+                </span>
+                <span className="text-neutral-600">
+                  total view{totalViews === 1 ? "" : "s"}
+                </span>
+              </p>
+            ) : null}
           </div>
         </div>
       </section>

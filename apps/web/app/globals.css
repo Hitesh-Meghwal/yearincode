@@ -31,3 +31,16 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* Marquee keyframes for the archetype deck. Two copies of the deck render
+   end-to-end; translating by -50% slides the second copy into the first's
+   slot exactly, so the loop reads as infinite. */
+@keyframes marquee-left {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes marquee-right {
+  from { transform: translate3d(-50%, 0, 0); }
+  to   { transform: translate3d(0, 0, 0); }
+}

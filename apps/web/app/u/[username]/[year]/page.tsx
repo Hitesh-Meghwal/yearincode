@@ -93,6 +93,20 @@ export default async function SharePage({
   }
   if (!data) notFound();
 
+  // Increment the view counter atomically via an SQL RPC. Fire-and-forget —
+  // the page render shouldn't depend on it succeeding. Migration:
+  // supabase/migrations/0002_view_count_rpc.sql
+  void supabase
+    .rpc("increment_wrapped_view", {
+      p_username: username,
+      p_year: yearNum,
+    })
+    .then(({ error: rpcError }) => {
+      if (rpcError) {
+        console.warn("[share-page] view increment failed:", rpcError.message);
+      }
+    });
+
   const stats = data.stats_json as WrappedStats;
   const shareUrl = await resolveShareUrl(`/u/${username}/${yearNum}`);
 

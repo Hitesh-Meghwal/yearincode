@@ -36,7 +36,7 @@ export default function SampleEmbed({
 
   if (!src) {
     return (
-      <div className="mx-auto w-full max-w-[360px] aspect-[9/16] rounded-3xl border border-neutral-800 bg-neutral-950/60 backdrop-blur-sm flex flex-col items-center justify-center text-center p-8 gap-4">
+      <div className="mx-auto w-full max-w-[360px] aspect-[9/16] rounded-md border border-neutral-800 bg-neutral-950/60 backdrop-blur-sm flex flex-col items-center justify-center text-center p-8 gap-4">
         <div className="text-5xl">📼</div>
         <p className="text-neutral-300 text-sm">
           Live sample loads once a wrapped exists.
@@ -52,7 +52,7 @@ export default function SampleEmbed({
   }
 
   return (
-    <div className="mx-auto w-full max-w-[360px] aspect-[9/16] rounded-3xl overflow-hidden border border-neutral-800 bg-black shadow-2xl">
+    <div className="mx-auto w-full max-w-[360px] aspect-[9/16] rounded-md overflow-hidden border border-neutral-800 bg-black shadow-2xl">
       <iframe
         src={src}
         title="sample wrapped"

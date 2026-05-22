@@ -53,7 +53,13 @@ export default function WrappedEmbed({ stats, onEnded }: Props) {
   return (
     <div
       data-wrapped-ended={ended ? "true" : "false"}
-      className="mx-auto w-full max-w-[540px] aspect-[9/16] rounded-2xl overflow-hidden bg-black shadow-2xl"
+      className="mx-auto aspect-[9/16] rounded-md overflow-hidden bg-black shadow-2xl"
+      // Width is the smallest of: parent's available width, the height-
+      // constrained equivalent (so the 9:16 portrait fits within ~80% of
+      // the viewport height), and the 540px design cap. Width drives,
+      // aspect-ratio gives us the height — guaranteeing the player never
+      // gets clipped at the bottom on a desktop with browser chrome.
+      style={{ width: "min(100%, calc(80dvh * 9 / 16), 540px)" }}
     >
       <iframe
         ref={iframeRef}

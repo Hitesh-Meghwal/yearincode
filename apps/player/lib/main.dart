@@ -66,26 +66,47 @@ class PlayerHome extends StatelessWidget {
     ];
 
     final durations = const [
-      Duration(seconds: 3), // intro
-      Duration(seconds: 3), // commits
-      Duration(seconds: 3), // lines
-      Duration(seconds: 3), // languages
-      Duration(seconds: 3), // peak hour
-      Duration(seconds: 3), // top repo
-      Duration(seconds: 3), // streak
-      Duration(seconds: 3), // collaborator
-      Duration(seconds: 4), // archetype (emphasis)
-      Duration(seconds: 4), // outro (viral)
+      Duration(seconds: 4), // intro
+      Duration(seconds: 5), // commits
+      Duration(seconds: 5), // lines
+      Duration(seconds: 5), // languages
+      Duration(seconds: 5), // peak hour
+      Duration(seconds: 5), // top repo
+      Duration(seconds: 5), // streak
+      Duration(seconds: 5), // collaborator
+      Duration(seconds: 6), // archetype (emphasis)
+      Duration(seconds: 6), // outro (viral)
     ];
 
-    // Fill the viewport. The Next.js iframe wrapper enforces aspect ratio +
-    // max-width per PRD §4.7 so the player doesn't have to.
+    // Fixed design canvas approach: every slide is laid out in a 540×960
+    // virtual frame, then FittedBox(contain) scales the whole thing to the
+    // actual iframe size. This means absolute Positioned coordinates in any
+    // slide always work — overflow is impossible because the canvas itself
+    // is bounded. The iframe wrapper enforces a 9:16 aspect ratio so there's
+    // never letterboxing — just uniform scaling.
+    //
+    // ClipRRect inside the canvas matches the parent iframe's tiny rounded
+    // corners so content positioned at the edges (intentionally bleeding
+    // stickers, full-bleed bars, etc.) doesn't visually clip against the
+    // parent's mask on any device size.
     return Scaffold(
       backgroundColor: Colors.black,
-      body: SlideController(
-        slides: slides,
-        durations: durations,
-        onEnded: _onEnded,
+      body: Center(
+        child: FittedBox(
+          fit: BoxFit.contain,
+          child: SizedBox(
+            width: 540,
+            height: 960,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: SlideController(
+                slides: slides,
+                durations: durations,
+                onEnded: _onEnded,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

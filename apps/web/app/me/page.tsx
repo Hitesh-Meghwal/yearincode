@@ -21,10 +21,10 @@ export default async function MePage() {
   const fullName: string | undefined = meta.full_name ?? meta.name;
 
   // Look up the user's most recent wrapped — drives both the View/Generate
-  // CTA copy and whether to show the Delete button.
+  // CTA copy, the view-count readout, and whether to show the Delete button.
   const { data: ownedWrapped } = await supabase
     .from("wrapped_reports")
-    .select("id, year")
+    .select("id, year, view_count, created_at")
     .eq("user_id", user.id)
     .order("year", { ascending: false })
     .limit(1)
@@ -69,6 +69,34 @@ export default async function MePage() {
         </div>
 
         {ownedWrapped ? (
+          <div className="pt-6 mt-6 border-t border-neutral-900">
+            <p className="text-xs uppercase tracking-[0.25em] text-neutral-500 mb-4">
+              Your wrapped &middot; {ownedWrapped.year}
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <Stat
+                label="Views"
+                value={new Intl.NumberFormat("en-US").format(
+                  ownedWrapped.view_count ?? 0,
+                )}
+              />
+              <Stat
+                label="Created"
+                value={new Date(ownedWrapped.created_at).toLocaleDateString(
+                  undefined,
+                  { month: "short", day: "numeric", year: "numeric" },
+                )}
+              />
+            </div>
+            {githubUsername ? (
+              <p className="mt-4 text-xs text-neutral-500 font-mono break-all">
+                /u/{githubUsername}/{ownedWrapped.year}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {ownedWrapped ? (
           <div className="pt-6 mt-6 border-t border-neutral-900 flex flex-col items-center gap-2">
             <p className="text-xs text-neutral-500 uppercase tracking-widest">
               Danger zone
@@ -81,5 +109,16 @@ export default async function MePage() {
         ) : null}
       </div>
     </main>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="text-left rounded-xl border border-neutral-800 bg-neutral-950/60 px-4 py-3">
+      <p className="text-[10px] uppercase tracking-[0.2em] text-neutral-500 mb-1">
+        {label}
+      </p>
+      <p className="text-xl font-bold text-white">{value}</p>
+    </div>
   );
 }
