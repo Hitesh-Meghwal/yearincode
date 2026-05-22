@@ -9,7 +9,7 @@ export default function TermsPage() {
   return (
     <>
       <h1 className="text-3xl font-bold tracking-tight">Terms of service</h1>
-      <p className="text-sm text-neutral-500">Last updated 2026-05-22.</p>
+      <p className="text-sm text-neutral-500">Last updated 2026-05-23.</p>
 
       <h2 className="text-xl font-semibold mt-8">Using yearincode</h2>
       <p>
