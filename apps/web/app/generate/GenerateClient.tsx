@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient as createBrowserSupabase } from "@/lib/supabase/client";
 
 // PRD §6.3 — rotating loading copy. Cycles while POST /api/generate runs.
 const LOADING_LINES = [
@@ -21,12 +22,29 @@ type ErrorPayload = {
   retryAfter?: number;
 };
 
-export default function GenerateClient() {
+type Props = {
+  year: number;
+};
+
+export default function GenerateClient({ year }: Props) {
   const router = useRouter();
   const [lineIndex, setLineIndex] = useState(0);
   const [error, setError] = useState<ErrorPayload | null>(null);
   const [retrying, setRetrying] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const startedRef = useRef(false);
+
+  async function signOutAndReauth() {
+    setSigningOut(true);
+    const supabase = createBrowserSupabase();
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error("[sign-out] failed", err);
+    }
+    // Send them back to the landing so they can hit "Sign in with GitHub".
+    router.push("/");
+  }
 
   // Rotate the loading copy every 2.3s.
   useEffect(() => {
@@ -49,7 +67,11 @@ export default function GenerateClient() {
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
-        headers: { accept: "application/json" },
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ year }),
       });
       const body = (await res.json().catch(() => null)) as
         | { wrappedId?: string; redirectUrl?: string }
@@ -74,6 +96,7 @@ export default function GenerateClient() {
   }
 
   if (error) {
+    const isTokenMissing = error.error === "missing_github_token";
     return (
       <main className="min-h-screen flex items-center justify-center px-6">
         <div className="w-full max-w-md text-center space-y-4">
@@ -82,38 +105,45 @@ export default function GenerateClient() {
             Couldn&apos;t cook your wrapped.
           </h1>
           <p className="text-sm text-neutral-400 break-words">
-            {error.message ?? error.error}
+            {isTokenMissing
+              ? "Your GitHub access token isn't on file. Sign out and sign back in to grant it again — that's the only fix."
+              : error.message ?? error.error}
           </p>
-          {error.hint ? (
+          {!isTokenMissing && error.hint ? (
             <p className="text-xs text-neutral-500">{error.hint}</p>
           ) : null}
-          {error.error === "missing_github_token" ? (
-            <p className="text-xs text-neutral-500">
-              Try signing out and back in. If it keeps failing, your Supabase
-              project needs &ldquo;Save provider tokens&rdquo; enabled on the
-              GitHub auth provider.
-            </p>
-          ) : null}
-          <div className="flex items-center justify-center gap-2 pt-2">
+
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+            {isTokenMissing ? (
+              <button
+                type="button"
+                onClick={signOutAndReauth}
+                disabled={signingOut}
+                className="inline-flex items-center justify-center rounded-full bg-white text-black px-5 py-2 text-sm font-semibold hover:bg-neutral-200 transition-colors disabled:opacity-60"
+              >
+                {signingOut ? "Signing out…" : "Sign out & sign in →"}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={async () => {
+                  setRetrying(true);
+                  startedRef.current = true;
+                  await runGenerate();
+                  setRetrying(false);
+                }}
+                disabled={retrying}
+                className="inline-flex items-center justify-center rounded-full bg-white text-black px-5 py-2 text-sm font-medium hover:bg-neutral-200 transition-colors disabled:opacity-60"
+              >
+                {retrying ? "Retrying…" : "Try again"}
+              </button>
+            )}
             <button
               type="button"
-              onClick={async () => {
-                setRetrying(true);
-                startedRef.current = true;
-                await runGenerate();
-                setRetrying(false);
-              }}
-              disabled={retrying}
-              className="inline-flex items-center justify-center rounded-full bg-white text-black px-5 py-2 text-sm font-medium hover:bg-neutral-200 transition-colors disabled:opacity-60"
-            >
-              {retrying ? "Retrying…" : "Try again"}
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push("/me")}
+              onClick={() => router.push("/generate")}
               className="inline-flex items-center justify-center rounded-full border border-neutral-700 px-5 py-2 text-sm text-neutral-200 hover:bg-neutral-900 transition-colors"
             >
-              Account
+              Pick another year
             </button>
           </div>
         </div>
@@ -130,7 +160,7 @@ export default function GenerateClient() {
 
       <div className="w-full max-w-md text-center space-y-8">
         <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-emerald-300">
-          cooking your wrapped
+          cooking your {year} wrapped
         </p>
 
         <div className="mx-auto h-12 w-12 rounded-full border-2 border-neutral-700 border-t-white animate-spin" />

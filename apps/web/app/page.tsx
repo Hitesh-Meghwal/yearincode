@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient, getUserSafe } from "@/lib/supabase/server";
 import SignInButton from "./SignInButton";
+import SignOutLink from "./SignOutLink";
 import SampleEmbed from "./SampleEmbed";
 import ArchetypeShowcase from "./ArchetypeShowcase";
 import ContributionGridBg from "./ContributionGridBg";
@@ -77,12 +78,15 @@ export default async function LandingPage({
           </span>
         </Link>
         {user ? (
-          <Link
-            href="/generate"
-            className="text-sm text-neutral-300 hover:text-white transition-colors"
-          >
-            Your wrapped →
-          </Link>
+          <div className="flex items-center gap-5">
+            <Link
+              href="/generate"
+              className="text-sm text-neutral-300 hover:text-white transition-colors"
+            >
+              Your wrapped →
+            </Link>
+            <SignOutLink />
+          </div>
         ) : null}
       </nav>
 
@@ -196,9 +200,19 @@ export default async function LandingPage({
         </div>
       </section>
 
-      <footer className="px-6 pb-10 text-center text-xs text-neutral-500 space-y-2">
+      <footer className="px-6 pb-10 text-center text-xs text-neutral-500 space-y-3">
         <div>
-          Built for developers · open-source friendly · {new Date().getFullYear()}
+          Built by{" "}
+          <a
+            href="https://github.com/Hitesh-Meghwal"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-neutral-300 hover:text-white transition-colors font-medium"
+          >
+            @Hitesh-Meghwal
+          </a>
+          {" · "}
+          {new Date().getFullYear()}
         </div>
         <div className="flex items-center justify-center gap-4">
           <Link href="/privacy" className="hover:text-neutral-300 transition-colors">

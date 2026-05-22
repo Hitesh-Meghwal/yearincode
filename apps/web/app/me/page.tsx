@@ -6,6 +6,8 @@ import SignOutButton from "./SignOutButton";
 
 export const dynamic = "force-dynamic";
 
+const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n);
+
 export default async function MePage() {
   const supabase = await createClient();
   const user = await getUserSafe(supabase);
@@ -20,105 +22,136 @@ export default async function MePage() {
   const avatarUrl: string | undefined = meta.avatar_url;
   const fullName: string | undefined = meta.full_name ?? meta.name;
 
-  // Look up the user's most recent wrapped — drives both the View/Generate
-  // CTA copy, the view-count readout, and whether to show the Delete button.
-  const { data: ownedWrapped } = await supabase
+  // List all wrappeds owned by this user, newest year first.
+  const { data: wrappeds } = await supabase
     .from("wrapped_reports")
     .select("id, year, view_count, created_at")
     .eq("user_id", user.id)
-    .order("year", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .order("year", { ascending: false });
+
+  const rows = (wrappeds ?? []) as Array<{
+    id: string;
+    year: number;
+    view_count: number | null;
+    created_at: string;
+  }>;
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-6 py-16">
-      <div className="w-full max-w-md text-center space-y-6">
-        <p className="uppercase tracking-[0.3em] text-xs text-neutral-400">
-          signed in
-        </p>
-        {avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={avatarUrl}
-            alt={githubUsername ?? "avatar"}
-            width={96}
-            height={96}
-            className="mx-auto rounded-full border border-neutral-800"
-          />
-        ) : null}
-        <div className="space-y-1">
-          <h1 className="text-4xl font-semibold tracking-tight">
-            @{githubUsername ?? "unknown"}
-          </h1>
-          {fullName ? (
-            <p className="text-neutral-400">{fullName}</p>
+    <main className="min-h-screen px-6 py-12 sm:py-16">
+      <div className="mx-auto w-full max-w-2xl space-y-10">
+        {/* Identity card */}
+        <header className="flex items-center gap-5">
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={avatarUrl}
+              alt={githubUsername ?? "avatar"}
+              width={72}
+              height={72}
+              className="rounded-full border border-neutral-800"
+            />
           ) : null}
-          {user.email ? (
-            <p className="text-neutral-500 text-sm">{user.email}</p>
-          ) : null}
-        </div>
-
-        <div className="flex flex-col items-center gap-3 pt-2">
-          <Link
-            href="/generate"
-            className="inline-flex items-center justify-center rounded-full bg-white text-black px-6 py-3 text-base font-semibold hover:bg-neutral-200 transition-colors"
-          >
-            {ownedWrapped ? "View your wrapped →" : "Generate wrapped →"}
-          </Link>
-          <SignOutButton />
-        </div>
-
-        {ownedWrapped ? (
-          <div className="pt-6 mt-6 border-t border-neutral-900">
-            <p className="text-xs uppercase tracking-[0.25em] text-neutral-500 mb-4">
-              Your wrapped &middot; {ownedWrapped.year}
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-[0.25em] text-neutral-500">
+              signed in
             </p>
-            <div className="grid grid-cols-2 gap-3">
-              <Stat
-                label="Views"
-                value={new Intl.NumberFormat("en-US").format(
-                  ownedWrapped.view_count ?? 0,
-                )}
-              />
-              <Stat
-                label="Created"
-                value={new Date(ownedWrapped.created_at).toLocaleDateString(
-                  undefined,
-                  { month: "short", day: "numeric", year: "numeric" },
-                )}
-              />
-            </div>
-            {githubUsername ? (
-              <p className="mt-4 text-xs text-neutral-500 font-mono break-all">
-                /u/{githubUsername}/{ownedWrapped.year}
-              </p>
+            <h1 className="text-2xl font-bold tracking-tight">
+              @{githubUsername ?? "unknown"}
+            </h1>
+            {fullName ? (
+              <p className="text-sm text-neutral-400">{fullName}</p>
             ) : null}
           </div>
-        ) : null}
-
-        {ownedWrapped ? (
-          <div className="pt-6 mt-6 border-t border-neutral-900 flex flex-col items-center gap-2">
-            <p className="text-xs text-neutral-500 uppercase tracking-widest">
-              Danger zone
-            </p>
-            <DeleteWrappedButton
-              wrappedId={ownedWrapped.id}
-              wrappedYear={ownedWrapped.year}
-            />
+          <div className="ml-auto">
+            <SignOutButton />
           </div>
-        ) : null}
+        </header>
+
+        {/* Primary CTA — always available */}
+        <Link
+          href="/generate"
+          className="inline-flex w-full sm:w-auto items-center justify-center rounded-full bg-white text-black px-6 py-3 text-base font-semibold hover:bg-neutral-200 transition-colors"
+        >
+          {rows.length > 0
+            ? "Generate another year →"
+            : "Generate your first wrapped →"}
+        </Link>
+
+        {/* Wrappeds list */}
+        {rows.length > 0 ? (
+          <section className="space-y-3">
+            <p className="text-xs uppercase tracking-[0.25em] text-neutral-500">
+              your wrappeds ({rows.length})
+            </p>
+            <ul className="border-y border-neutral-900 divide-y divide-neutral-900">
+              {rows.map((row) => (
+                <WrappedRow
+                  key={row.id}
+                  id={row.id}
+                  year={row.year}
+                  viewCount={row.view_count ?? 0}
+                  createdAt={row.created_at}
+                  username={githubUsername ?? ""}
+                />
+              ))}
+            </ul>
+          </section>
+        ) : (
+          <section className="rounded-2xl border border-neutral-900 bg-neutral-950/60 p-6 text-center">
+            <p className="text-sm text-neutral-400">
+              No wrappeds yet. Pick a year above to generate your first.
+            </p>
+          </section>
+        )}
       </div>
     </main>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function WrappedRow({
+  id,
+  year,
+  viewCount,
+  createdAt,
+  username,
+}: {
+  id: string;
+  year: number;
+  viewCount: number;
+  createdAt: string;
+  username: string;
+}) {
+  const created = new Date(createdAt).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  const sharePath = `/u/${username}/${year}`;
+
   return (
-    <div className="text-left rounded-xl border border-neutral-800 bg-neutral-950/60 px-4 py-3">
-      <p className="text-[10px] uppercase tracking-[0.2em] text-neutral-500 mb-1">
-        {label}
-      </p>
-      <p className="text-xl font-bold text-white">{value}</p>
-    </div>
+    <li className="grid grid-cols-[5ch_1fr_auto] items-center gap-5 py-4">
+      <span className="font-mono text-lg text-neutral-300 tabular-nums font-semibold">
+        {year}
+      </span>
+      <div className="min-w-0">
+        <p className="text-xs text-neutral-500 font-mono truncate">
+          {sharePath}
+        </p>
+        <p className="text-[11px] text-neutral-600 font-mono mt-0.5">
+          {fmt(viewCount)} {viewCount === 1 ? "view" : "views"}
+          <span className="text-neutral-800"> · </span>
+          created {created}
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        <Link
+          href={sharePath}
+          className="inline-flex items-center justify-center rounded-full border border-neutral-700 px-3 py-1.5 text-xs text-neutral-100 hover:bg-neutral-900 transition-colors"
+        >
+          View
+        </Link>
+        <DeleteWrappedButton wrappedId={id} wrappedYear={year} />
+      </div>
+    </li>
   );
 }
