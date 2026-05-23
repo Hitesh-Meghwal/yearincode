@@ -84,8 +84,17 @@ export default function PrivacyPage() {
 
       <h2 className="text-xl font-semibold mt-8">Contact</h2>
       <p>
-        Questions or deletion requests outside the in-app flow: open an issue
-        on the project repo.
+        For privacy questions or deletion requests outside the in-app flow,
+        reach out to{" "}
+        <a
+          href="https://github.com/Hitesh-Meghwal"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline"
+        >
+          @Hitesh-Meghwal
+        </a>{" "}
+        on GitHub.
       </p>
     </>
   );
