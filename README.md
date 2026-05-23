@@ -19,7 +19,7 @@
 | Permanent public share URL + 1200×630 OG card | `/u/{username}/{year}` + `/opengraph-image` |
 | Web Share + X / LinkedIn / Reddit / copy-link | revealed after the player ends |
 | `/me` dashboard: all your wrappeds, views, created date, delete | `/me` |
-| Landing social-proof strip (total wrappeds · total views) | `/` |
+| Tiered landing social-proof strip (adapts copy as numbers grow) | `/` |
 | Marquee deck of all 15 archetypes | `/` (the vibe check section) |
 | Privacy + Terms pages | `/privacy`, `/terms` |
 | Auto-generated `robots.txt` + `sitemap.xml` | route conventions |
@@ -36,9 +36,11 @@ yearincode/
 │   └── player/     Flutter Web (wasm) — the 10-slide animated player
 ├── supabase/
 │   └── migrations/
-│       ├── 0001_initial_schema.sql     wrapped_reports table + RLS
-│       ├── 0002_view_count_rpc.sql     atomic view-count increment RPC
-│       └── 0003_public_wrapped_stats_rpc.sql   aggregate counts for landing
+│       ├── 0001_initial_schema.sql               wrapped_reports table + RLS
+│       ├── 0002_view_count_rpc.sql               atomic view-count increment RPC
+│       ├── 0003_public_wrapped_stats_rpc.sql     aggregate counts for landing
+│       ├── 0004_user_github_tokens.sql           server-side GitHub OAuth token storage
+│       └── 0005_public_wrapped_stats_add_devs.sql adds total_devs to the stats RPC
 └── docs/
     └── PRD.md      product + technical spec (source of truth)
 ```
@@ -71,10 +73,12 @@ flutter pub get --directory=apps/player
 ### 2. Set up Supabase
 
 1. Create a new project at <https://supabase.com>.
-2. SQL Editor → run the three migrations **in order**:
+2. SQL Editor → run the five migrations **in order**:
    - [`supabase/migrations/0001_initial_schema.sql`](supabase/migrations/0001_initial_schema.sql) — `wrapped_reports` table, indexes, RLS policies.
    - [`supabase/migrations/0002_view_count_rpc.sql`](supabase/migrations/0002_view_count_rpc.sql) — `increment_wrapped_view(p_username, p_year)` RPC for share-page view tracking.
-   - [`supabase/migrations/0003_public_wrapped_stats_rpc.sql`](supabase/migrations/0003_public_wrapped_stats_rpc.sql) — `public_wrapped_stats()` RPC for the landing-page "N wrappeds · M views" strip.
+   - [`supabase/migrations/0003_public_wrapped_stats_rpc.sql`](supabase/migrations/0003_public_wrapped_stats_rpc.sql) — `public_wrapped_stats()` RPC for the landing-page social-proof strip.
+   - [`supabase/migrations/0004_user_github_tokens.sql`](supabase/migrations/0004_user_github_tokens.sql) — `user_github_tokens` table where `/auth/callback` persists each user's GitHub access token (service-role only, used by `/api/generate`). Without this, generation fails with `missing_github_token`.
+   - [`supabase/migrations/0005_public_wrapped_stats_add_devs.sql`](supabase/migrations/0005_public_wrapped_stats_add_devs.sql) — extends the stats RPC with `total_devs` (distinct user count) so the landing strip can switch to "X devs have wrapped their year" once it scales.
 3. **Authentication → Providers → GitHub**: enable it. Copy the **callback URL** Supabase shows you, looks like `https://<project-ref>.supabase.co/auth/v1/callback`.
 4. **Authentication → URL Configuration**:
    - Site URL: `http://localhost:3000`
@@ -148,7 +152,9 @@ Opens at <http://localhost:3000>. Sign in with GitHub → land on the year picke
 
 ### 1. Auth
 
-`SignInButton` calls `supabase.auth.signInWithOAuth({ provider: "github", redirectTo: '<site>/auth/callback?next=/generate', scopes: 'read:user user:email read:org repo' })`. Supabase handles the OAuth dance; GitHub redirects back to Supabase's callback URL, which then redirects to our `/auth/callback`. We exchange the code for a session and redirect to `/generate`.
+`SignInButton` calls `supabase.auth.signInWithOAuth({ provider: "github", redirectTo: '<site>/auth/callback?next=/generate', scopes: 'read:user user:email read:org repo' })`. Supabase handles the OAuth dance; GitHub redirects back to Supabase's callback URL, which then redirects to our `/auth/callback`.
+
+In the callback we (a) exchange the code for a session, and (b) **capture `provider_token` from that session and persist it to `user_github_tokens` via a service-role client**. This is the only reliable moment to grab the GitHub access token — newer Supabase versions don't expose it on subsequent `getSession()` calls. The table has RLS enabled with no policies, so only the service role can read or write it. Then we redirect to `/generate`.
 
 ### 2. Year picker
 
@@ -162,7 +168,7 @@ Clicking **Generate** navigates to `/generate?year=YYYY`, which:
 
 `GenerateClient` POSTs `/api/generate` with `{ year }` in the body and shows the rotating loading copy (PRD §6.3) while it waits. The route:
 
-1. Reads the authenticated user + their `provider_token` (the GitHub OAuth token Supabase persisted).
+1. Reads the authenticated user via cookies, then reads the GitHub access token from `user_github_tokens` using a service-role client (the table is RLS-locked to service-role only). If no row exists, returns `missing_github_token` and the UI offers a "Sign out & sign in →" action to trigger a fresh capture in `/auth/callback`.
 2. Computes the calendar date range for that year (Jan 1 → Dec 31, or → today if current year).
 3. Calls `lib/github/fetchCommits`:
    - GraphQL `contributionsCollection` for repo list + commit counts + language sizes.
@@ -211,7 +217,7 @@ Animations respect `MediaQuery.disableAnimations` (reduced motion). FadeIn / Sca
 1. Connect the repo on Vercel.
 2. **Root Directory** = `apps/web` (we're in a pnpm monorepo).
 3. Add all six env vars from `apps/web/.env.local` to **Production** scope. For prod, swap `NEXT_PUBLIC_SITE_URL` to your Vercel URL (e.g. `https://yearincode-nine.vercel.app`).
-4. Apply the three SQL migrations in the Supabase SQL editor (see step 2 of setup).
+4. Apply all five SQL migrations in the Supabase SQL editor (see step 2 of setup). Specifically `0004_user_github_tokens.sql` is required — without it generation fails with `missing_github_token`.
 5. **GitHub OAuth app**: the Authorization callback URL stays pointing at Supabase's `/auth/v1/callback` — no change needed for prod.
 6. **Supabase → Authentication → URL Configuration**:
    - Site URL: change to `https://<your-domain>`
@@ -234,7 +240,7 @@ Once `https://yearincode-nine.vercel.app` is healthy and you've shared with frie
 
 | Symptom | Fix |
 |---|---|
-| `missing_github_token` from `/api/generate` | Supabase isn't persisting the GitHub access token. Authentication → Providers → GitHub → enable **Save provider tokens**, then sign out + back in. |
+| `missing_github_token` from `/api/generate` | Your row in `user_github_tokens` is missing. Use the "Sign out & sign in →" button on the error screen (or `/me` → Sign out → land back at `/` → Sign in). The `/auth/callback` handler captures and persists the token on a fresh sign-in. If it still fails: verify migration `0004` was applied. |
 | Vercel build warns "Vulnerable version of Next.js" | Bump: `pnpm --filter web add next@latest`, rebuild, redeploy. |
 | OG image 500 on local dev (Windows) | Known Next.js 15.1.x bundled-font path bug. The OG route uses `export const runtime = "edge"` to sidestep it. |
 | Iframe says "Module not found" or shows blank | The Flutter build wasn't copied — re-run step 5. |
@@ -242,6 +248,7 @@ Once `https://yearincode-nine.vercel.app` is healthy and you've shared with frie
 | Stale "Invalid refresh token" 500 on `/me` after long inactivity | `getUserSafe` / `getSessionSafe` already catch this. Hard-refresh; the broken cookie clears and the page returns to "signed out" state. |
 | Slide content cut at top/bottom on certain viewports | Already fixed via `height: 1.0` on hero TextStyles + removal of `Align(heightFactor:)` squeezes. If you see new occurrences, check whether you've added new text with `height: 0.X`. |
 | New year picker shows "Not generated yet" forever | Did you apply migration `0002`? View count + row existence both come from the same `wrapped_reports` table; the picker checks `user_id` ownership. |
+| Landing strip stays on "just launched" even after wrappeds exist | Migration `0005` not applied. The RPC needs the new `total_devs` column shape. Run `0005` (it auto-drops the older 0003 function and recreates with the new return type). |
 
 ---
 
