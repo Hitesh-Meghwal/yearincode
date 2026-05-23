@@ -13,11 +13,16 @@ export default function PrivacyPage() {
 
       <h2 className="text-xl font-semibold mt-8">What we collect</h2>
       <p>
-        When you sign in with GitHub, yearincode receives the GitHub data
-        your OAuth approval grants us: your username, avatar, public profile,
-        organization memberships you&apos;ve agreed to share, and commit
-        metadata (timestamps, repository names, additions/deletions, commit
-        message subject lines). We use this to compute your wrapped
+        When you sign in with GitHub, yearincode requests <strong>read-only
+        access to your public repositories</strong> (<code className="font-mono">public_repo</code> scope) plus your basic profile and
+        organization memberships you&apos;ve agreed to share. We do{" "}
+        <strong>not</strong> request access to your private repositories,
+        and we cannot write anything to your GitHub account.
+      </p>
+      <p>
+        From those public repositories we read commit metadata only:
+        timestamps, repository names, additions/deletions, and commit
+        message subject lines. We use this to compute your wrapped
         statistics.
       </p>
       <p>

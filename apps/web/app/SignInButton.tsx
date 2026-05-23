@@ -17,7 +17,13 @@ export default function SignInButton() {
       provider: "github",
       options: {
         redirectTo: `${siteUrl}/auth/callback?next=/generate`,
-        scopes: "read:user user:email read:org repo",
+        // public_repo (not repo) — read-only access to public repositories.
+        // The `repo` scope grants read AND write to public + private repos
+        // plus wikis/webhooks/deploy-keys, which is a scary permission
+        // screen for a Wrapped-style app and overkill for our needs.
+        // Trade-off: private repo commits are not visible. We can add an
+        // opt-in "include private repos" upgrade flow later if users ask.
+        scopes: "read:user user:email read:org public_repo",
       },
     });
     if (signInError) {

@@ -133,7 +133,7 @@ export default async function LandingPage({
               <p className="text-red-400 text-sm">{params.error}</p>
             ) : null}
             <p className="text-xs text-neutral-500">
-              free · public + private repos · we never see your code, only metadata
+              free · read-only public-repo access · we never see your code, only commit metadata
             </p>
             <p className="font-mono text-[12px] text-neutral-400 mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
