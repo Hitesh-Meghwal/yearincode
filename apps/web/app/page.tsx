@@ -36,20 +36,22 @@ export default async function LandingPage({
     sampleStats = sample?.stats_json ?? null;
   }
 
-  // Aggregate stats for the social-proof line. Requires the
-  // public_wrapped_stats RPC from 0003_public_wrapped_stats_rpc.sql; if the
-  // migration hasn't been applied yet we silently hide the strip.
+  // Aggregate stats for the social-proof line. RPC from migrations
+  // 0003 + 0005 — if 0005 isn't applied, total_devs falls back to
+  // total_wrappeds (lower bound: at least one dev per wrapped).
   const { data: globalStats } = await supabase
     .rpc("public_wrapped_stats")
     .maybeSingle();
-  const totalWrappeds = Number(
-    (globalStats as { total_wrappeds?: number | string } | null)
-      ?.total_wrappeds ?? 0,
-  );
-  const totalViews = Number(
-    (globalStats as { total_views?: number | string } | null)?.total_views ??
-      0,
-  );
+  const stats = globalStats as
+    | {
+        total_wrappeds?: number | string;
+        total_views?: number | string;
+        total_devs?: number | string;
+      }
+    | null;
+  const totalWrappeds = Number(stats?.total_wrappeds ?? 0);
+  const totalViews = Number(stats?.total_views ?? 0);
+  const totalDevs = Number(stats?.total_devs ?? totalWrappeds ?? 0);
   const fmtCount = (n: number) =>
     new Intl.NumberFormat("en-US").format(n);
 
@@ -133,24 +135,15 @@ export default async function LandingPage({
             <p className="text-xs text-neutral-500">
               free · public + private repos · we never see your code, only metadata
             </p>
-            {totalWrappeds > 0 ? (
-              <p className="font-mono text-[12px] text-neutral-400 mt-2 flex items-center gap-2">
-                <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-emerald-300">
-                  {fmtCount(totalWrappeds)}
-                </span>
-                <span className="text-neutral-600">
-                  wrapped{totalWrappeds === 1 ? "" : "s"} generated
-                </span>
-                <span className="text-neutral-700">·</span>
-                <span className="text-emerald-300">
-                  {fmtCount(totalViews)}
-                </span>
-                <span className="text-neutral-600">
-                  total view{totalViews === 1 ? "" : "s"}
-                </span>
-              </p>
-            ) : null}
+            <p className="font-mono text-[12px] text-neutral-400 mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <SocialProofCopy
+                totalWrappeds={totalWrappeds}
+                totalViews={totalViews}
+                totalDevs={totalDevs}
+                fmtCount={fmtCount}
+              />
+            </p>
           </div>
         </div>
       </section>
@@ -245,5 +238,65 @@ function Feature({
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
       <p className="text-sm text-neutral-400 leading-relaxed">{body}</p>
     </div>
+  );
+}
+
+/**
+ * Social-proof copy that adapts to actual numbers in three tiers, so the
+ * landing reads positively whether we're at zero users or ten thousand.
+ * No fake numbers — just smart phrasing per stage of growth.
+ *
+ *   tier 1   0 wrappeds:     "just launched · be the first to ship your wrapped"
+ *   tier 2   1-9 wrappeds:   "{N} wrapped(s) shipped · be next →"
+ *   tier 3   10+ wrappeds:   "{D} devs have wrapped their year · {V} plays"
+ */
+function SocialProofCopy({
+  totalWrappeds,
+  totalViews,
+  totalDevs,
+  fmtCount,
+}: {
+  totalWrappeds: number;
+  totalViews: number;
+  totalDevs: number;
+  fmtCount: (n: number) => string;
+}) {
+  if (totalWrappeds === 0) {
+    return (
+      <>
+        <span className="text-emerald-300">just launched</span>
+        <span className="text-neutral-700">·</span>
+        <span className="text-neutral-600">
+          be the first to ship your wrapped
+        </span>
+      </>
+    );
+  }
+
+  if (totalWrappeds < 10) {
+    return (
+      <>
+        <span className="text-emerald-300">{fmtCount(totalWrappeds)}</span>
+        <span className="text-neutral-600">
+          wrapped{totalWrappeds === 1 ? "" : "s"} shipped
+        </span>
+        <span className="text-neutral-700">·</span>
+        <span className="text-neutral-500">be next →</span>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <span className="text-emerald-300">{fmtCount(totalDevs)}</span>
+      <span className="text-neutral-600">
+        dev{totalDevs === 1 ? "" : "s"} wrapped their year
+      </span>
+      <span className="text-neutral-700">·</span>
+      <span className="text-emerald-300">{fmtCount(totalViews)}</span>
+      <span className="text-neutral-600">
+        play{totalViews === 1 ? "" : "s"}
+      </span>
+    </>
   );
 }
