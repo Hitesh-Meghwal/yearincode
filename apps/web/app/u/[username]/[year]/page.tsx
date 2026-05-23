@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import SharePageClient from "@/components/SharePageClient";
+import { TwemojiImage } from "@/components/TwemojiImage";
+import { getPlayerVersion } from "@/lib/playerVersion";
 import { createClient } from "@/lib/supabase/server";
 import type { WrappedStats } from "@/lib/types";
 
@@ -130,7 +132,11 @@ export default async function SharePage({
           </div>
         </header>
 
-        <SharePageClient stats={stats} shareUrl={shareUrl} />
+        <SharePageClient
+          stats={stats}
+          shareUrl={shareUrl}
+          playerVersion={getPlayerVersion()}
+        />
 
         {/* Plain-text summary kept below the player as an accessibility +
             no-JS fallback. PRD §5.5 calls for a screen-reader-friendly
@@ -178,10 +184,17 @@ export default async function SharePage({
 
           <div className="space-y-2">
             <h3 className="text-lg font-semibold">Archetype</h3>
-            <p>
-              {stats.archetype.emoji} {stats.archetype.name}{" "}
-              <span className="text-sm text-neutral-400">
-                ({stats.archetype.rarity})
+            <p className="flex items-center gap-2">
+              <TwemojiImage
+                emoji={stats.archetype.emoji}
+                size={24}
+                alt={stats.archetype.name}
+              />
+              <span>
+                {stats.archetype.name}{" "}
+                <span className="text-sm text-neutral-400">
+                  ({stats.archetype.rarity})
+                </span>
               </span>
             </p>
             <p className="text-sm text-neutral-300">

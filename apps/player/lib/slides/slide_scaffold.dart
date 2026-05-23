@@ -1,13 +1,17 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../themes/archetype_themes.dart';
-import '../widgets/animated_background.dart';
 import '../widgets/motion.dart';
 
-/// Shared chrome for every slide. Drifting background + grain + safe-area
-/// padding. Child = whatever the slide wants to render on top.
+/// Shared chrome for every slide. Spotify-Wrapped-style solid color block
+/// background (per-slide via `slideColor`), plus a very faint grain
+/// overlay so the card doesn't look 100% flat. Slides paint their
+/// content on top. The `backgroundSeed` arg is accepted for backwards
+/// compatibility with existing slide call sites; it's ignored now that
+/// backgrounds are deterministic per-slide solid colors.
 class SlideScaffold extends StatelessWidget {
   final ArchetypeTheme theme;
+  final Color slideColor;
   final Widget child;
   final EdgeInsets padding;
   final int backgroundSeed;
@@ -15,25 +19,28 @@ class SlideScaffold extends StatelessWidget {
   const SlideScaffold({
     super.key,
     required this.theme,
+    required this.slideColor,
     required this.child,
     this.padding = const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
-    this.backgroundSeed = 7,
+    this.backgroundSeed = 0,
   });
 
   @override
   Widget build(BuildContext context) {
     // ClipRect is the final safety net — any Positioned that extends past the
     // 540×960 design canvas gets clipped at the slide boundary instead of
-    // visually bleeding into the next slide or overflowing the viewport.
+    // visually bleeding into the next slide.
     return ClipRect(
       child: Stack(
         fit: StackFit.expand,
         children: [
-          AnimatedBackground(
-            primary: theme.primary,
-            secondary: theme.secondary,
-            background: theme.background,
-            seed: backgroundSeed,
+          // Solid color base.
+          ColoredBox(color: slideColor),
+          // Very faint grain on top so the block doesn't read as 100% flat
+          // (paper-like texture, no motion).
+          CustomPaint(
+            painter: _GrainPainter(),
+            size: Size.infinite,
           ),
           SafeArea(
             child: Padding(padding: padding, child: child),
@@ -42,6 +49,23 @@ class SlideScaffold extends StatelessWidget {
       ),
     );
   }
+}
+
+class _GrainPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rng = math.Random(91);
+    final paint = Paint()..color = Colors.white.withValues(alpha: 0.018);
+    final count = (size.width * size.height / 1800).toInt();
+    for (var i = 0; i < count; i += 1) {
+      final x = rng.nextDouble() * size.width;
+      final y = rng.nextDouble() * size.height;
+      canvas.drawRect(Rect.fromLTWH(x, y, 1, 1), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _GrainPainter old) => false;
 }
 
 class SlideTitle extends StatelessWidget {

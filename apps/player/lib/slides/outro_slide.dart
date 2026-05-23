@@ -1,36 +1,57 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/wrapped_stats.dart';
 import '../themes/archetype_themes.dart';
+import '../themes/wrapped_palette.dart';
 import 'slide_scaffold.dart';
 
-/// "Concert ticket / receipt." The recap is a vertical ticket stub with a torn
-/// top edge, mono header, dotted-leader stat rows, and a faux barcode at the
-/// foot. The whole card is slightly rotated.
+/// Wrapped Pattern C — recap. A concert-ticket stub sits on the yellow
+/// slide bg, slightly rotated. Header band carries the wordmark + year,
+/// stat rows use dotted-leader rule, faux barcode at the bottom.
 class OutroSlide extends StatelessWidget {
   final WrappedStats stats;
   final ArchetypeTheme theme;
   const OutroSlide({super.key, required this.stats, required this.theme});
 
+  static const Color _ink = Color(0xFF1A1A1A);
+
   @override
   Widget build(BuildContext context) {
     return SlideScaffold(
       theme: theme,
-      backgroundSeed: 59,
+      slideColor: WrappedPalette.outro,
       padding: EdgeInsets.zero,
       child: Stack(
         children: [
-          // Solid color block sitting on top of the scaffold's drifting bg.
+          // Ticket stub — centered, subtly rotated.
           Positioned.fill(
-            child: ColoredBox(color: theme.background.withValues(alpha: 0.85)),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 70, 20, 70),
+                child: ScaleIn(
+                  delay: const Duration(milliseconds: 150),
+                  from: 0.85,
+                  child: Transform.rotate(
+                    angle: -0.02,
+                    child: _TicketStub(stats: stats),
+                  ),
+                ),
+              ),
+            ),
           ),
-          // The ticket card — slight rotation, asymmetric placement.
-          Center(
-            child: ScaleIn(
-              from: 0.7,
-              delay: const Duration(milliseconds: 200),
-              child: Transform.rotate(
-                angle: -0.025,
-                child: _TicketCard(stats: stats, theme: theme),
+
+          // Wordmark — dark ink on the yellow.
+          Positioned(
+            right: 28,
+            bottom: 28,
+            child: Text(
+              'yearincode  ·  ${stats.year}  ·  @${stats.username}',
+              style: TextStyle(
+                color: _ink.withValues(alpha: 0.5),
+                fontFamily: 'monospace',
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.2,
               ),
             ),
           ),
@@ -40,149 +61,164 @@ class OutroSlide extends StatelessWidget {
   }
 }
 
-class _TicketCard extends StatelessWidget {
+class _TicketStub extends StatelessWidget {
   final WrappedStats stats;
-  final ArchetypeTheme theme;
-  const _TicketCard({required this.stats, required this.theme});
+  const _TicketStub({required this.stats});
+
+  static const Color _ink = Color(0xFF1A1A1A);
+  static const Color _card = Color(0xFFF8F4EA);
+  static const Color _headerBand = WrappedPalette.commits; // violet
+  static const double _cardWidth = 400;
+  static const int _tearSegments = 18;
+  static const double _tearHeight = 13;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 280,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF6F1E7), // warm off-white "paper"
-        border: Border(
-          left: BorderSide(color: Colors.black, width: 3),
-          right: BorderSide(color: Colors.black, width: 3),
-          bottom: BorderSide(color: Colors.black, width: 3),
-        ),
-      ),
+    return SizedBox(
+      width: _cardWidth,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Torn top edge.
-          SizedBox(
-            height: 12,
-            child: CustomPaint(
-              painter: _TearLinePainter(color: Colors.black),
+          // Zig-zag tear line at the top, matching the header band color.
+          CustomPaint(
+            size: const Size(_cardWidth, _tearHeight),
+            painter: _ZigZagPainter(
+              color: _headerBand,
+              segments: _tearSegments,
             ),
           ),
-
-          // Header band — solid theme.primary, mono uppercase.
+          // Card body.
           Container(
-            color: theme.primary,
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-            child: FadeIn(
-              delay: const Duration(milliseconds: 350),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'YEARINCODE',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 4,
-                      fontFamily: 'monospace',
-                      height: 1,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '${stats.year} / @${stats.username}',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.85),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.4,
-                      fontFamily: 'monospace',
-                    ),
-                  ),
-                ],
+            decoration: BoxDecoration(
+              color: _card,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(8),
+                bottomRight: Radius.circular(8),
               ),
-            ),
-          ),
-
-          // Stat rows with dotted-leader fill.
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 14, 18, 10),
-            child: Column(
-              children: [
-                _DottedRow(
-                  label: 'COMMITS',
-                  value: '${stats.totalCommits}',
-                  delay: 500,
-                ),
-                _DottedRow(
-                  label: 'ACTIVE DAYS',
-                  value: '${stats.totalActiveDays}',
-                  delay: 650,
-                ),
-                _DottedRow(
-                  label: 'STREAK',
-                  value: '${stats.longestStreak.days}D',
-                  delay: 800,
-                ),
-                _DottedRow(
-                  label: 'REPOS',
-                  value: '${stats.totalRepos}',
-                  delay: 950,
-                ),
-                _DottedRow(
-                  label: 'ARCHETYPE',
-                  value: stats.archetype.name.toUpperCase(),
-                  delay: 1100,
-                  accent: theme.primary,
-                  emphasize: false,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.18),
+                  blurRadius: 22,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
-          ),
-
-          // Divider between rows and footer.
-          const SizedBox(height: 4),
-          _DashedDivider(),
-          const SizedBox(height: 14),
-
-          // Footer — barcode + url.
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
-            child: FadeIn(
-              delay: const Duration(milliseconds: 1300),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const _Barcode(),
-                  const SizedBox(height: 10),
-                  Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Header band.
+                Container(
+                  width: double.infinity,
+                  color: _headerBand,
+                  padding: const EdgeInsets.fromLTRB(24, 22, 24, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'YEARINCODE',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'monospace',
+                          fontSize: 32,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 5,
+                          height: 1.0,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${stats.year}  ·  @${stats.username}',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.85),
+                          fontFamily: 'monospace',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.8,
+                          height: 1.1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Stat rows.
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 22, 24, 18),
+                  child: Column(
+                    children: [
+                      _TicketStatRow(
+                        label: 'COMMITS',
+                        value: '${stats.totalCommits}',
+                      ),
+                      _TicketStatRow(
+                        label: 'ACTIVE DAYS',
+                        value: '${stats.totalActiveDays}',
+                      ),
+                      _TicketStatRow(
+                        label: 'STREAK',
+                        value: '${stats.longestStreak.days}D',
+                      ),
+                      _TicketStatRow(
+                        label: 'DISCIPLINE',
+                        value: '${stats.disciplineScore}/100',
+                      ),
+                      _TicketStatRow(
+                        label: 'ARCHETYPE',
+                        value:
+                            '${stats.archetype.emoji} ${stats.archetype.name.toUpperCase()}',
+                        scaleValue: true,
+                      ),
+                    ],
+                  ),
+                ),
+                // Dashed divider above the barcode.
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: CustomPaint(
+                    size: const Size(double.infinity, 1),
+                    painter: _DashedLinePainter(color: _ink.withValues(alpha: 0.35)),
+                  ),
+                ),
+                // Faux barcode.
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 18, 24, 12),
+                  child: SizedBox(
+                    height: 38,
+                    child: CustomPaint(
+                      size: const Size(double.infinity, 38),
+                      painter: _BarcodePainter(seed: stats.username.hashCode),
+                    ),
+                  ),
+                ),
+                // Footer row: yearincode.com  ·  ADMIT ONE.
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
                         'yearincode.com',
                         style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 11,
+                          color: _ink,
                           fontFamily: 'monospace',
+                          fontSize: 13,
                           fontWeight: FontWeight.w800,
-                          letterSpacing: 1.2,
+                          letterSpacing: 0.4,
                         ),
                       ),
                       Text(
                         'ADMIT ONE',
                         style: TextStyle(
-                          color: Colors.black.withValues(alpha: 0.55),
-                          fontSize: 9,
+                          color: _ink.withValues(alpha: 0.55),
                           fontFamily: 'monospace',
+                          fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          letterSpacing: 1.6,
+                          letterSpacing: 2.2,
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
@@ -191,198 +227,178 @@ class _TicketCard extends StatelessWidget {
   }
 }
 
-class _DottedRow extends StatelessWidget {
+class _TicketStatRow extends StatelessWidget {
   final String label;
   final String value;
-  final int delay;
-  final Color? accent;
-  final bool emphasize;
-  const _DottedRow({
+  final bool scaleValue;
+  const _TicketStatRow({
     required this.label,
     required this.value,
-    required this.delay,
-    this.accent,
-    this.emphasize = true,
+    this.scaleValue = false,
   });
 
+  static const Color _ink = Color(0xFF1A1A1A);
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: FadeIn(
-        delay: Duration(milliseconds: delay),
-        slideFrom: const Offset(-0.05, 0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 10,
-                fontFamily: 'monospace',
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.4,
-                height: 1.6,
-              ),
-            ),
-            // Dotted leaders fill the gap.
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: CustomPaint(
-                  size: const Size.fromHeight(16),
-                  painter: _DottedLeaderPainter(),
-                ),
-              ),
-            ),
-            // FittedBox keeps long values (e.g. long archetype names) from
-            // pushing this row past the ticket's right edge.
-            Flexible(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerRight,
-                child: Text(
-                  value,
-                  maxLines: 1,
-                  softWrap: false,
-                  overflow: TextOverflow.visible,
-                  style: TextStyle(
-                    color: accent ?? Colors.black,
-                    fontSize: emphasize ? 18 : 11,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: emphasize ? -0.5 : 1,
-                    fontFamily: emphasize ? null : 'monospace',
-                    height: 1,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+    final valueWidget = Text(
+      value,
+      maxLines: 1,
+      softWrap: false,
+      overflow: TextOverflow.ellipsis,
+      textAlign: TextAlign.right,
+      style: const TextStyle(
+        color: _ink,
+        fontFamily: 'monospace',
+        fontSize: 17,
+        fontWeight: FontWeight.w900,
+        letterSpacing: 0.2,
+        height: 1.1,
       ),
     );
-  }
-}
 
-class _Barcode extends StatelessWidget {
-  const _Barcode();
-
-  @override
-  Widget build(BuildContext context) {
-    // Deterministic faux barcode: alternating widths chosen by a seed string.
-    const seed = 'YEARINCODE2026';
-    final widths = <double>[];
-    for (var i = 0; i < seed.length * 3; i++) {
-      final code = seed.codeUnitAt(i % seed.length);
-      final w = ((code + i * 7) % 5).toDouble();
-      widths.add(w == 0 ? 1 : w);
-    }
-    return SizedBox(
-      height: 32,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 7),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          for (var i = 0; i < widths.length; i++) ...[
-            SizedBox(
-              width: widths[i],
-              child: Container(color: Colors.black),
+          Text(
+            label,
+            style: TextStyle(
+              color: _ink.withValues(alpha: 0.78),
+              fontFamily: 'monospace',
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.4,
             ),
-            const SizedBox(width: 2),
-          ],
+          ),
+          const SizedBox(width: 10),
+          // Dotted-leader fill.
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 3),
+              child: CustomPaint(
+                size: const Size(double.infinity, 2),
+                painter: _DottedLeaderPainter(
+                  color: _ink.withValues(alpha: 0.30),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 200),
+            child: scaleValue
+                ? FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerRight,
+                    child: valueWidget,
+                  )
+                : valueWidget,
+          ),
         ],
       ),
     );
   }
 }
 
-class _DashedDivider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 1,
-      child: CustomPaint(
-        painter: _DashedLinePainter(color: Colors.black.withValues(alpha: 0.6)),
-        size: const Size.fromHeight(1),
-      ),
-    );
-  }
-}
+class _ZigZagPainter extends CustomPainter {
+  final Color color;
+  final int segments;
+  _ZigZagPainter({required this.color, required this.segments});
 
-class _DottedLeaderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.black.withValues(alpha: 0.45);
-    const dotR = 1.0;
-    const step = 5.0;
-    final y = size.height - 4;
-    for (var x = 0.0; x < size.width; x += step) {
-      canvas.drawCircle(Offset(x, y), dotR, paint);
+    final paint = Paint()..color = color;
+    final segWidth = size.width / segments;
+    final path = Path();
+    // Top edge sits flat on the slide; teeth point downward into the card.
+    path.moveTo(0, 0);
+    for (var i = 0; i < segments; i++) {
+      final startX = i * segWidth;
+      final midX = startX + segWidth / 2;
+      final endX = (i + 1) * segWidth;
+      path.lineTo(startX, 0);
+      path.lineTo(midX, size.height);
+      path.lineTo(endX, 0);
     }
+    path.lineTo(size.width, 0);
+    path.close();
+    canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _ZigZagPainter old) =>
+      old.color != color || old.segments != segments;
 }
 
 class _DashedLinePainter extends CustomPainter {
   final Color color;
   _DashedLinePainter({required this.color});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = color
       ..strokeWidth = 1;
-    const dash = 6.0;
+    const dash = 4.0;
     const gap = 4.0;
-    var x = 0.0;
-    final y = size.height / 2;
+    double x = 0;
     while (x < size.width) {
-      canvas.drawLine(Offset(x, y), Offset(x + dash, y), paint);
+      canvas.drawLine(
+        Offset(x, size.height / 2),
+        Offset(math.min(x + dash, size.width), size.height / 2),
+        paint,
+      );
       x += dash + gap;
     }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _DashedLinePainter old) => old.color != color;
 }
 
-class _TearLinePainter extends CustomPainter {
+class _DottedLeaderPainter extends CustomPainter {
   final Color color;
-  _TearLinePainter({required this.color});
+  _DottedLeaderPainter({required this.color});
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Paper "paper" fill behind the zig-zag.
-    final paperFill = Paint()..color = const Color(0xFFF6F1E7);
-    final path = Path();
-    const teeth = 14;
-    final tw = size.width / teeth;
-    path.moveTo(0, size.height);
-    for (var i = 0; i < teeth; i++) {
-      final x0 = i * tw;
-      path.lineTo(x0 + tw / 2, 2);
-      path.lineTo(x0 + tw, size.height);
-    }
-    path.close();
-    canvas.drawPath(path, paperFill);
-
-    // Outline stroke for the zig-zag.
-    final stroke = Paint()
+    final paint = Paint()
       ..color = color
-      ..strokeWidth = 2.5
-      ..style = PaintingStyle.stroke
-      ..strokeJoin = StrokeJoin.miter;
-    final outline = Path();
-    outline.moveTo(0, size.height);
-    for (var i = 0; i < teeth; i++) {
-      final x0 = i * tw;
-      outline.lineTo(x0 + tw / 2, 2);
-      outline.lineTo(x0 + tw, size.height);
+      ..style = PaintingStyle.fill;
+    const spacing = 4.0;
+    const radius = 1.0;
+    double x = radius;
+    while (x < size.width) {
+      canvas.drawCircle(Offset(x, size.height / 2), radius, paint);
+      x += spacing;
     }
-    canvas.drawPath(outline, stroke);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _DottedLeaderPainter old) => old.color != color;
+}
+
+class _BarcodePainter extends CustomPainter {
+  final int seed;
+  _BarcodePainter({required this.seed});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rng = math.Random(seed);
+    final paint = Paint()..color = Colors.black;
+    double x = 0;
+    while (x < size.width) {
+      // Alternating black bars and gaps of varying widths.
+      final barWidth = 1.0 + rng.nextDouble() * 3.5;
+      final gapWidth = 1.0 + rng.nextDouble() * 2.0;
+      if (x + barWidth > size.width) break;
+      canvas.drawRect(Rect.fromLTWH(x, 0, barWidth, size.height), paint);
+      x += barWidth + gapWidth;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _BarcodePainter old) => old.seed != seed;
 }

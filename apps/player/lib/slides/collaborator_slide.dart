@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import '../models/wrapped_stats.dart';
 import '../themes/archetype_themes.dart';
+import '../themes/wrapped_palette.dart';
+import '../widgets/twemoji_image.dart';
 import 'slide_scaffold.dart';
 
-/// "Two-up." Two big overlapping solid-fill avatar circles. Above: mono caption.
-/// Below: the two handles stacked like a record-label split, with the shared
-/// commit count between them as massive editorial type. No orbits, no glows.
+/// Wrapped Pattern B — single massive stat. Shared commits with the top
+/// collaborator. Top half: two overlapping initial-circles (you and the
+/// collaborator). Lone-wolf fallback: a single big wolf emoji instead.
 class CollaboratorSlide extends StatelessWidget {
   final WrappedStats stats;
   final ArchetypeTheme theme;
@@ -15,230 +17,179 @@ class CollaboratorSlide extends StatelessWidget {
     required this.theme,
   });
 
+  String _initial(String username) {
+    final trimmed = username.trim();
+    if (trimmed.isEmpty) return '?';
+    return trimmed.substring(0, 1).toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     final collab = stats.topCollaborators.isNotEmpty
         ? stats.topCollaborators.first
         : null;
 
+    final int statValue;
+    final String label;
+    final String subCaption;
+    if (collab == null) {
+      statValue = 0;
+      label = 'co-committers';
+      subCaption = 'shipped solo this year';
+    } else {
+      statValue = collab.sharedCommits;
+      label = 'shipped together';
+      subCaption = 'with @${collab.username}';
+    }
+
     return SlideScaffold(
       theme: theme,
-      backgroundSeed: 127,
+      slideColor: WrappedPalette.collaborator,
       padding: EdgeInsets.zero,
-      child: collab == null
-          ? _LoneWolf(theme: theme)
-          : _TwoUp(stats: stats, theme: theme, collab: collab),
+      child: Stack(
+        children: [
+          // Kicker — top-left.
+          Positioned(
+            top: 56,
+            left: 32,
+            right: 32,
+            child: FadeIn(
+              delay: const Duration(milliseconds: 100),
+              child: const _WrappedKicker(text: 'MY MAIN COLLAB'),
+            ),
+          ),
+
+          // Upper band — overlapping circles or the lone-wolf emoji, vertically
+          // centered in a 160px slot.
+          Positioned(
+            top: 110,
+            left: 0,
+            right: 0,
+            height: 160,
+            child: Center(
+              child: collab == null
+                  ? ScaleIn(
+                      delay: const Duration(milliseconds: 200),
+                      from: 0.6,
+                      child: const TwemojiImage(emoji: '🐺', size: 130),
+                    )
+                  : ScaleIn(
+                      delay: const Duration(milliseconds: 200),
+                      from: 0.6,
+                      child: _OverlappingCircles(
+                        leftInitial: _initial(stats.username),
+                        rightInitial: _initial(collab.username),
+                      ),
+                    ),
+            ),
+          ),
+
+          // Hero block — anchored at top: 320 (pushed down for the circles).
+          Positioned(
+            top: 320,
+            left: 32,
+            right: 32,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ScaleIn(
+                  delay: const Duration(milliseconds: 350),
+                  from: 0.6,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      '$statValue',
+                      maxLines: 1,
+                      softWrap: false,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 200,
+                        fontWeight: FontWeight.w900,
+                        height: 1.0,
+                        letterSpacing: -6,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                FadeIn(
+                  delay: const Duration(milliseconds: 500),
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      height: 1.1,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                FadeIn(
+                  delay: const Duration(milliseconds: 650),
+                  child: Text(
+                    subCaption,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          _WrappedWordmark(year: stats.year, username: stats.username),
+        ],
+      ),
     );
   }
 }
 
-class _TwoUp extends StatelessWidget {
-  final WrappedStats stats;
-  final ArchetypeTheme theme;
-  final CollaboratorStat collab;
-  const _TwoUp({
-    required this.stats,
-    required this.theme,
-    required this.collab,
+/// Two solid white-bordered circles overlapping by ~30%. Each shows a
+/// bold initial; no actual avatar fetch.
+class _OverlappingCircles extends StatelessWidget {
+  final String leftInitial;
+  final String rightInitial;
+  const _OverlappingCircles({
+    required this.leftInitial,
+    required this.rightInitial,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 60),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Mono caption — top-aligned, terminal-style prompt.
-          FadeIn(
-            slideFrom: const Offset(-0.1, 0),
-            child: Text(
-              '> SHIPPED TOGETHER',
-              style: TextStyle(
-                color: theme.secondary,
-                fontSize: 12,
-                fontFamily: 'monospace',
-                fontWeight: FontWeight.w800,
-                letterSpacing: 2.2,
-              ),
-            ),
-          ),
-          const SizedBox(height: 28),
+    const double size = 140;
+    const double overlap = 0.30; // 30% overlap
+    const double totalWidth = size * (2 - overlap);
 
-          // Two overlapping solid circles. Slight off-center placement.
-          Align(
-            alignment: Alignment.centerLeft,
-            child: ScaleIn(
-              from: 0.5,
-              delay: const Duration(milliseconds: 200),
-              child: SizedBox(
-                width: 196,
-                height: 112,
-                child: Stack(
-                  children: [
-                    Positioned(
-                      left: 0,
-                      top: 0,
-                      child: _SolidAvatar(
-                        label: stats.username,
-                        color: theme.primary,
-                      ),
-                    ),
-                    Positioned(
-                      left: 70, // overlap by ~30%
-                      top: 10,
-                      child: _SolidAvatar(
-                        label: collab.username,
-                        color: theme.secondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Record-label split: handle / huge number / handle.
-          FadeIn(
-            delay: const Duration(milliseconds: 500),
-            child: Text(
-              '@${stats.username}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.5,
-                height: 1.05,
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-
-          // Shared commits — large type. Capped at 110 and FittedBox-guarded so
-          // a 4+ digit count cannot reach the right edge.
-          FadeIn(
-            delay: const Duration(milliseconds: 700),
-            slideFrom: const Offset(-0.08, 0),
-            child: ShaderMask(
-              shaderCallback: (rect) => LinearGradient(
-                colors: [theme.primary, theme.secondary],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ).createShader(rect),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  '${collab.sharedCommits}',
-                  maxLines: 1,
-                  softWrap: false,
-                  overflow: TextOverflow.visible,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 110,
-                    fontWeight: FontWeight.w900,
-                    height: 1.0,
-                    letterSpacing: -5,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 2),
-          FadeIn(
-            delay: const Duration(milliseconds: 850),
-            child: Text(
-              'SHARED COMMITS',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.55),
-                fontSize: 10,
-                fontFamily: 'monospace',
-                fontWeight: FontWeight.w700,
-                letterSpacing: 2,
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-          FadeIn(
-            delay: const Duration(milliseconds: 1000),
-            child: Text(
-              '@${collab.username}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: theme.secondary,
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.5,
-                height: 1.05,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LoneWolf extends StatelessWidget {
-  final ArchetypeTheme theme;
-  const _LoneWolf({required this.theme});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 60),
+    return SizedBox(
+      width: totalWidth,
+      height: size,
       child: Stack(
         children: [
-          // Large emoji, inside the safe area on the bottom-right.
-          Positioned(
-            right: 0,
-            bottom: 80,
-            child: ScaleIn(
-              from: 0.55,
-              delay: const Duration(milliseconds: 200),
-              child: const Text(
-                '🐺',
-                style: TextStyle(fontSize: 180, height: 1),
-              ),
-            ),
-          ),
-          // Mono caption block, top-left.
+          // Left circle.
           Positioned(
             left: 0,
             top: 0,
-            child: FadeIn(
-              slideFrom: const Offset(-0.1, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '> LONE WOLF',
-                    style: TextStyle(
-                      color: theme.secondary,
-                      fontSize: 12,
-                      fontFamily: 'monospace',
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 2.2,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'SHIPPED\nSOLO\nTHIS\nYEAR.',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.96),
-                      fontSize: 50,
-                      fontWeight: FontWeight.w900,
-                      height: 1.0,
-                      letterSpacing: -1.6,
-                    ),
-                  ),
-                ],
-              ),
+            child: _InitialCircle(
+              initial: leftInitial,
+              fill: Colors.white.withValues(alpha: 0.15),
+              size: size,
+            ),
+          ),
+          // Right circle, overlapping the left.
+          Positioned(
+            left: size * (1 - overlap),
+            top: 0,
+            child: _InitialCircle(
+              initial: rightInitial,
+              fill: Colors.white.withValues(alpha: 0.25),
+              size: size,
             ),
           ),
         ],
@@ -247,31 +198,74 @@ class _LoneWolf extends StatelessWidget {
   }
 }
 
-class _SolidAvatar extends StatelessWidget {
-  final String label;
-  final Color color;
-  const _SolidAvatar({required this.label, required this.color});
+class _InitialCircle extends StatelessWidget {
+  final String initial;
+  final Color fill;
+  final double size;
+  const _InitialCircle({
+    required this.initial,
+    required this.fill,
+    required this.size,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final initial = label.isNotEmpty ? label[0].toUpperCase() : '?';
     return Container(
-      width: 94,
-      height: 94,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
-        color: color,
+        color: fill,
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.black, width: 3),
+        border: Border.all(color: Colors.white, width: 3),
       ),
       alignment: Alignment.center,
       child: Text(
         initial,
         style: const TextStyle(
           color: Colors.white,
-          fontSize: 46,
+          fontSize: 48,
           fontWeight: FontWeight.w900,
-          height: 1,
-          letterSpacing: -1.6,
+          height: 1.0,
+          letterSpacing: -1.0,
+        ),
+      ),
+    );
+  }
+}
+
+class _WrappedKicker extends StatelessWidget {
+  final String text;
+  const _WrappedKicker({required this.text});
+  @override
+  Widget build(BuildContext context) => Text(
+        text,
+        style: TextStyle(
+          color: Colors.white.withValues(alpha: 0.78),
+          fontFamily: 'monospace',
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 2.4,
+        ),
+      );
+}
+
+class _WrappedWordmark extends StatelessWidget {
+  final int year;
+  final String username;
+  const _WrappedWordmark({required this.year, required this.username});
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      right: 28,
+      bottom: 28,
+      child: Text(
+        'yearincode  ·  $year  ·  @$username',
+        style: TextStyle(
+          color: Colors.white.withValues(alpha: 0.5),
+          fontFamily: 'monospace',
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1.2,
         ),
       ),
     );

@@ -2,6 +2,8 @@
 // directions, pause-on-hover, edge fade. All 15 archetypes flow continuously
 // — no tier walls, no broken side-by-side panels, no card grid monotony.
 
+import { TwemojiImage } from "@/components/TwemojiImage";
+
 type Rarity = "common" | "uncommon" | "rare" | "legendary";
 
 type Archetype = {
@@ -92,7 +94,7 @@ function MarqueeRow({
   const animationName = direction === "left" ? "marquee-left" : "marquee-right";
 
   return (
-    <div className="group relative overflow-hidden">
+    <div className="group relative overflow-x-clip py-2">
       {/* Edge fades to dissolve cards in/out of the viewport. */}
       <div
         aria-hidden
@@ -147,9 +149,8 @@ function Card({ a }: { a: Archetype }) {
       ) : null}
 
       <div className="relative flex items-start justify-between gap-3 mb-3">
-        <span className="leading-none" style={{ fontSize: "2.25rem" }}>
-          {a.emoji}
-        </span>
+        <TwemojiImage emoji={a.emoji} size={36} alt={a.name} />
+
         <div className="flex items-center gap-1.5 mt-1">
           <span className={`h-1.5 w-1.5 rounded-full ${accent.dot}`} />
           <span

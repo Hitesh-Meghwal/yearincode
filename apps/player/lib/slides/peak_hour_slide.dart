@@ -1,322 +1,240 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/wrapped_stats.dart';
 import '../themes/archetype_themes.dart';
+import '../themes/wrapped_palette.dart';
 import 'slide_scaffold.dart';
 
-/// Magazine pull-quote treatment for the peak commit hour. The hour itself
-/// becomes the page; everything else is editorial dressing.
+/// Wrapped Pattern B — single massive stat. The peak hour HH:00 fills the
+/// middle band; UTC label sits underneath; sub-caption ties it to the
+/// commit count at that hour. A vertical 24-row hour distribution chart
+/// fills the right edge with data-viz.
 class PeakHourSlide extends StatelessWidget {
   final WrappedStats stats;
   final ArchetypeTheme theme;
   const PeakHourSlide({super.key, required this.stats, required this.theme});
 
-  String _snark(int hour) {
-    if (hour >= 0 && hour <= 4) return 'we see you.';
-    if (hour >= 5 && hour <= 8) return 'early bird, full inbox.';
-    if (hour >= 9 && hour <= 11) return 'model citizen behaviour.';
-    if (hour == 12 || hour == 13) return 'lunch break legend.';
-    if (hour >= 14 && hour <= 17) return 'peak focus mode.';
-    if (hour >= 18 && hour <= 21) return 'post-dinner shipper.';
-    return 'night owl detected.';
-  }
-
   @override
   Widget build(BuildContext context) {
-    final hour = stats.peakHour;
-    final hh = hour.toString().padLeft(2, '0');
+    final hh = stats.peakHour.toString().padLeft(2, '0');
 
     return SlideScaffold(
       theme: theme,
-      backgroundSeed: 89,
+      slideColor: WrappedPalette.peakHour,
       padding: EdgeInsets.zero,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final w = constraints.maxWidth;
-          final h = constraints.maxHeight;
-          // 24-bar column on the right, sized inside the safe area so the
-          // peak-hour callout ("← HH" + bar) cannot clip past the right edge.
-          const railWidth = 70.0;
-          // FittedBox below shrinks further if needed; cap kept at 110 so
-          // "HH:00" is never taller than the safe header band.
-          final hourFontSize = (w * 0.22).clamp(80.0, 110.0);
+      child: Stack(
+        children: [
+          // Kicker — top-left.
+          Positioned(
+            top: 56,
+            left: 32,
+            right: 32,
+            child: FadeIn(
+              delay: const Duration(milliseconds: 100),
+              child: const _WrappedKicker(text: 'MY PEAK HOUR'),
+            ),
+          ),
 
-          return Stack(
-            children: [
-              // ------- the 24-hour rail, inside the right safe-area margin.
-              Positioned(
-                top: 40,
-                bottom: 40,
-                right: 25,
-                width: railWidth,
-                child: FadeIn(
-                  slideFrom: const Offset(0.3, 0),
+          // Hero block — anchored at top: 130, leaves room for right-edge chart.
+          Positioned(
+            top: 130,
+            left: 32,
+            right: 110,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ScaleIn(
                   delay: const Duration(milliseconds: 200),
-                  child: _HourRail(
-                    peakHour: hour,
-                    primary: theme.primary,
-                  ),
-                ),
-              ),
-
-              // ------- eyebrow caption.
-              Positioned(
-                top: 60,
-                left: 28,
-                child: FadeIn(
-                  slideFrom: const Offset(-0.1, 0),
-                  child: _MonoCaption('// PEAK · UTC'),
-                ),
-              ),
-
-              // ------- HOUR, large, off-centre, mono. Sits left of the
-              // rail with a comfortable margin so every glyph reads.
-              Positioned(
-                top: h * 0.20,
-                left: 28,
-                right: railWidth + 36,
-                child: FadeIn(
-                  delay: const Duration(milliseconds: 150),
-                  slideFrom: const Offset(-0.06, 0.04),
+                  from: 0.6,
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
-                    alignment: Alignment.topLeft,
+                    alignment: Alignment.centerLeft,
                     child: Text(
                       '$hh:00',
                       maxLines: 1,
                       softWrap: false,
-                      overflow: TextOverflow.visible,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
-                        fontFamily: 'monospace',
-                        fontSize: hourFontSize,
+                        fontSize: 200,
                         fontWeight: FontWeight.w900,
                         height: 1.0,
-                        letterSpacing: -3,
+                        letterSpacing: -6,
+                        fontFamily: 'monospace',
                       ),
                     ),
                   ),
                 ),
-              ),
-
-              // ------- thick accent slab under the hour, anchoring the type.
-              Positioned(
-                left: 28,
-                top: h * 0.20 + hourFontSize * 0.70,
-                child: FadeIn(
-                  delay: const Duration(milliseconds: 450),
-                  slideFrom: const Offset(-0.15, 0),
-                  child: Container(
-                    width: 80,
-                    height: 6,
-                    color: theme.primary,
+                const SizedBox(height: 6),
+                FadeIn(
+                  delay: const Duration(milliseconds: 350),
+                  child: const Text(
+                    'UTC',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      height: 1.1,
+                      letterSpacing: -0.5,
+                    ),
                   ),
                 ),
-              ),
-
-              // ------- italic pull-quote, two lines, theme.secondary.
-              Positioned(
-                left: 28,
-                right: railWidth + 36,
-                bottom: 130,
-                child: FadeIn(
-                  delay: const Duration(milliseconds: 700),
-                  slideFrom: const Offset(0, 0.08),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Big open quote glyph as design element.
-                      Text(
-                        '"',
-                        style: TextStyle(
-                          color: theme.secondary,
-                          fontSize: 72,
-                          fontWeight: FontWeight.w900,
-                          height: 1.0,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _snark(hour),
-                          maxLines: 3,
-                          style: TextStyle(
-                            color: theme.secondary,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                            fontStyle: FontStyle.italic,
-                            height: 1.05,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 14),
+                FadeIn(
+                  delay: const Duration(milliseconds: 500),
+                  child: Text(
+                    '${stats.peakHourCommits} commits at this hour, more than any other',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.2,
+                      height: 1.4,
+                    ),
                   ),
                 ),
-              ),
+              ],
+            ),
+          ),
 
-              // ------- byline / data line at the bottom.
-              Positioned(
-                left: 28,
-                right: railWidth + 36,
-                bottom: 60,
-                child: FadeIn(
-                  delay: const Duration(milliseconds: 950),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 20,
-                        height: 2,
-                        color: Colors.white.withValues(alpha: 0.5),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          '${stats.peakHourCommits} COMMITS  ·  THIS HOUR, MORE THAN ANY OTHER',
-                          maxLines: 2,
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.65),
-                            fontFamily: 'monospace',
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.8,
-                            height: 1.4,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
+          // 24-row hour distribution chart on the right edge.
+          Positioned(
+            top: 110,
+            bottom: 80,
+            right: 24,
+            width: 70,
+            child: FadeIn(
+              delay: const Duration(milliseconds: 600),
+              child: _HourBarChart(peakHour: stats.peakHour),
+            ),
+          ),
+
+          _WrappedWordmark(year: stats.year, username: stats.username),
+        ],
       ),
     );
   }
 }
 
-// ---------------------------------------------------------------------------
-// Internal helpers
-// ---------------------------------------------------------------------------
-
-class _MonoCaption extends StatelessWidget {
-  final String text;
-  const _MonoCaption(this.text);
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: TextStyle(
-        color: Colors.white.withValues(alpha: 0.55),
-        fontFamily: 'monospace',
-        fontSize: 10,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 2,
-      ),
-    );
-  }
-}
-
-/// Vertical 24-row chart hugging the right edge. Each row = one hour. The
-/// peak hour's row is a wide solid bar in [primary]; the rest are thin dim
-/// ticks. Hour labels (00, 06, 12, 18) are dropped in as anchors.
-class _HourRail extends StatelessWidget {
+/// Vertical 24-row bar chart. Each row is one hour; widths peak at
+/// [peakHour] and fall off via wraparound distance, with a touch of
+/// seeded noise so the chart reads as plausible activity.
+class _HourBarChart extends StatelessWidget {
   final int peakHour;
-  final Color primary;
-  const _HourRail({required this.peakHour, required this.primary});
+  const _HourBarChart({required this.peakHour});
 
   @override
   Widget build(BuildContext context) {
+    final rng = math.Random(peakHour * 1000 + 17);
+    // Deterministic plausible distribution.
+    final widths = List<double>.generate(24, (h) {
+      final raw = (h - peakHour) % 24;
+      final dist = math.min(raw, 24 - raw); // wraparound distance 0..12
+      // Symmetric falloff: peak=1.0, neighbours~0.8, opposite~0.10.
+      final base = math.max(0.10, 1.0 - (dist / 12.0) * 0.92);
+      // Sprinkle in deterministic noise so it doesn't look mechanical.
+      final noise = (rng.nextDouble() - 0.5) * 0.20;
+      return (base + noise).clamp(0.08, 1.0);
+    });
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Vertical area minus top/bottom margins.
-        const vTop = 80.0;
-        const vBottom = 80.0;
-        final availableH = constraints.maxHeight - vTop - vBottom;
-        final rowH = availableH / 24.0;
+        final h = constraints.maxHeight;
+        final rowHeight = h / 24;
+        final barHeight = (rowHeight * 0.6).clamp(2.0, 6.0);
+        const labelWidth = 26.0;
+        final maxBarWidth = constraints.maxWidth - labelWidth - 4;
 
         return Stack(
-          children: [
-            for (var i = 0; i < 24; i += 1)
-              Positioned(
-                top: vTop + i * rowH,
-                right: 12,
-                child: _HourTick(
-                  hour: i,
-                  isPeak: i == peakHour,
-                  primary: primary,
-                  height: rowH,
-                ),
-              ),
-            // Anchor labels.
-            for (final anchor in const [0, 6, 12, 18])
-              Positioned(
-                top: vTop + anchor * rowH - 6,
-                right: 18,
-                child: Opacity(
-                  opacity: anchor == peakHour ? 0 : 0.45,
-                  child: Text(
-                    anchor.toString().padLeft(2, '0'),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontFamily: 'monospace',
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1,
+          children: List.generate(24, (i) {
+            final isPeak = i == peakHour;
+            final w = widths[i] * maxBarWidth;
+            return Positioned(
+              top: i * rowHeight + (rowHeight - barHeight) / 2,
+              right: 0,
+              left: 0,
+              height: barHeight,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Bar grows from the right edge so the chart sits against
+                  // the slide edge cleanly.
+                  Expanded(
+                    child: Stack(
+                      alignment: Alignment.centerRight,
+                      children: [
+                        Container(
+                          width: w,
+                          height: barHeight,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(
+                                alpha: isPeak ? 0.95 : 0.55),
+                            borderRadius: BorderRadius.circular(1),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
+                  const SizedBox(width: 4),
+                  SizedBox(
+                    width: labelWidth,
+                    child: isPeak
+                        ? Text(
+                            '← ${peakHour.toString().padLeft(2, '0')}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontFamily: 'monospace',
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.4,
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ],
               ),
-          ],
+            );
+          }),
         );
       },
     );
   }
 }
 
-class _HourTick extends StatelessWidget {
-  final int hour;
-  final bool isPeak;
-  final Color primary;
-  final double height;
-  const _HourTick({
-    required this.hour,
-    required this.isPeak,
-    required this.primary,
-    required this.height,
-  });
+class _WrappedKicker extends StatelessWidget {
+  final String text;
+  const _WrappedKicker({required this.text});
+  @override
+  Widget build(BuildContext context) => Text(
+        text,
+        style: TextStyle(
+          color: Colors.white.withValues(alpha: 0.78),
+          fontFamily: 'monospace',
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 2.4,
+        ),
+      );
+}
 
+class _WrappedWordmark extends StatelessWidget {
+  final int year;
+  final String username;
+  const _WrappedWordmark({required this.year, required this.username});
   @override
   Widget build(BuildContext context) {
-    if (isPeak) {
-      // The standout bar — wide, solid, with a small label callout.
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            '← ${hour.toString().padLeft(2, '0')}',
-            style: TextStyle(
-              color: primary,
-              fontFamily: 'monospace',
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Container(
-            width: 32,
-            height: (height * 0.7).clamp(4.0, 14.0),
-            color: primary,
-          ),
-        ],
-      );
-    }
-    return Container(
-      width: 12,
-      height: (height * 0.35).clamp(1.5, 4.0),
-      color: Colors.white.withValues(alpha: 0.18),
+    return Positioned(
+      right: 28,
+      bottom: 28,
+      child: Text(
+        'yearincode  ·  $year  ·  @$username',
+        style: TextStyle(
+          color: Colors.white.withValues(alpha: 0.5),
+          fontFamily: 'monospace',
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1.2,
+        ),
+      ),
     );
   }
 }

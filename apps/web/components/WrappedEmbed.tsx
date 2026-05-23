@@ -5,6 +5,7 @@ import type { WrappedStats } from "@/lib/types";
 
 type Props = {
   stats: WrappedStats;
+  playerVersion: string;
   onEnded?: () => void;
 };
 
@@ -22,14 +23,14 @@ function encodeStats(stats: WrappedStats): string {
   return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
-export default function WrappedEmbed({ stats, onEnded }: Props) {
+export default function WrappedEmbed({ stats, playerVersion, onEnded }: Props) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const [ended, setEnded] = useState(false);
 
   const src = useMemo(() => {
     const encoded = encodeStats(stats);
-    return `/player/index.html?stats=${encoded}`;
-  }, [stats]);
+    return `/player/index.html?v=${encodeURIComponent(playerVersion)}&stats=${encoded}`;
+  }, [stats, playerVersion]);
 
   useEffect(() => {
     function handle(event: MessageEvent) {

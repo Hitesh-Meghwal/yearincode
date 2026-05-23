@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import '../models/wrapped_stats.dart';
 import '../themes/archetype_themes.dart';
 import '../widgets/confetti_burst.dart';
+import '../widgets/twemoji_image.dart';
+import '../themes/wrapped_palette.dart';
 import 'slide_scaffold.dart';
 
-/// "Trading card / poster." A rotated Polaroid-style frame holds the emoji and
-/// archetype name. A big rotated rarity stamp sits outside the frame. Confetti
-/// bursts on entry. The killer-feature slide.
+/// Wrapped Pattern C — headline / reveal. The archetype emoji is the
+/// centerpiece, with the archetype name as a big headline below.
+/// Rarity word in caps, description as a small caption. Confetti
+/// overlays everything for the reveal moment.
 class ArchetypeSlide extends StatelessWidget {
   final WrappedStats stats;
   final ArchetypeTheme theme;
@@ -17,178 +20,114 @@ class ArchetypeSlide extends StatelessWidget {
     final a = stats.archetype;
     return SlideScaffold(
       theme: theme,
-      backgroundSeed: 23,
+      slideColor: WrappedPalette.archetype,
       padding: EdgeInsets.zero,
       child: Stack(
         children: [
-          // Mono caption — top-left editorial label.
+          // Kicker — top-left.
           Positioned(
-            left: 28,
-            top: 60,
+            top: 56,
+            left: 32,
+            right: 32,
             child: FadeIn(
-              slideFrom: const Offset(-0.1, 0),
-              child: Text(
-                '// YOU ARE',
-                style: TextStyle(
-                  color: theme.secondary,
-                  fontSize: 11,
-                  fontFamily: 'monospace',
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 2.4,
-                ),
-              ),
+              delay: const Duration(milliseconds: 100),
+              child: const _WrappedKicker(text: 'YOU ARE'),
             ),
           ),
 
-          // The Polaroid card — slightly rotated, asymmetric.
-          Center(
-            child: ScaleIn(
-              from: 0.6,
-              delay: const Duration(milliseconds: 250),
-              duration: const Duration(milliseconds: 900),
-              child: Transform.rotate(
-                angle: -0.04,
-                child: _PolaroidCard(archetype: a, theme: theme),
-              ),
-            ),
-          ),
-
-          // Rarity stamp — outside the frame, rotated sticker. Inside safe.
-          Positioned(
-            right: 28,
-            top: 110,
-            child: FadeIn(
-              delay: const Duration(milliseconds: 900),
-              slideFrom: const Offset(0.15, 0),
-              child: Transform.rotate(
-                angle: -0.08,
-                child: _RarityStamp(
-                  text: _rarityLabel(a.rarity),
-                  fill: theme.secondary,
-                ),
-              ),
-            ),
-          ),
-
-          // Confetti, overlaid on everything.
+          // Hero block — emoji + headline + rarity + description.
           Positioned.fill(
-            child: ConfettiBurst(
-              colors: [theme.primary, theme.secondary, Colors.white],
-              delay: const Duration(milliseconds: 400),
-              particleCount: 80,
-              duration: const Duration(milliseconds: 3600),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PolaroidCard extends StatelessWidget {
-  final Archetype archetype;
-  final ArchetypeTheme theme;
-  const _PolaroidCard({required this.archetype, required this.theme});
-
-  @override
-  Widget build(BuildContext context) {
-    // Lightly tinted primary fill (~20%) keeps the card readable on top of
-    // the scaffold's drifting background but still has color identity.
-    final cardFill = Color.alphaBlend(
-      theme.primary.withValues(alpha: 0.22),
-      const Color(0xFFF6F1E7), // warm off-white, polaroid paper
-    );
-
-    return Container(
-      width: 280,
-      padding: const EdgeInsets.fromLTRB(16, 18, 16, 22),
-      decoration: BoxDecoration(
-        color: cardFill,
-        border: Border.all(color: Colors.black, width: 3),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Emoji "photo" area — solid color rectangle with the emoji centered.
-          Container(
-            height: 172,
-            decoration: BoxDecoration(
-              color: theme.background.withValues(alpha: 0.92),
-              border: Border.all(color: Colors.black, width: 2),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              archetype.emoji,
-              style: const TextStyle(fontSize: 124, height: 1),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Archetype name — bold, left-aligned editorial. FittedBox keeps a
-          // long name (e.g. "The Quantum Refactorer") on a single line within
-          // the polaroid width rather than spilling out.
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              archetype.name,
-              maxLines: 1,
-              softWrap: false,
-              overflow: TextOverflow.visible,
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 26,
-                fontWeight: FontWeight.w900,
-                height: 1.0,
-                letterSpacing: -1,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(32, 110, 32, 90),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // The emoji — Twemoji image so the visual matches the
+                  // landing-page archetype deck exactly.
+                  ScaleIn(
+                    delay: const Duration(milliseconds: 200),
+                    from: 0.5,
+                    duration: const Duration(milliseconds: 900),
+                    child: GentlePulse(
+                      child: TwemojiImage(emoji: a.emoji, size: 150),
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  // Headline.
+                  FadeIn(
+                    delay: const Duration(milliseconds: 450),
+                    slideFrom: const Offset(0, 0.06),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        a.name,
+                        maxLines: 1,
+                        softWrap: false,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 48,
+                          fontWeight: FontWeight.w900,
+                          height: 1.0,
+                          letterSpacing: -1.6,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  // Rarity word.
+                  FadeIn(
+                    delay: const Duration(milliseconds: 600),
+                    child: Text(
+                      _rarityLabel(a.rarity),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2.8,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  // Description.
+                  if (a.description.isNotEmpty)
+                    FadeIn(
+                      delay: const Duration(milliseconds: 750),
+                      child: Text(
+                        a.description,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.72),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          height: 1.45,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
-          const SizedBox(height: 6),
 
-          // Description — small italic caption. Capped at 4 lines so a
-          // verbose blurb cannot push the card past the bottom of the slide.
-          Text(
-            archetype.description,
-            maxLines: 4,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: Colors.black.withValues(alpha: 0.7),
-              fontSize: 11,
-              fontStyle: FontStyle.italic,
-              height: 1.35,
+          // Confetti — overlays everything.
+          Positioned.fill(
+            child: IgnorePointer(
+              child: ConfettiBurst(
+                colors: [theme.primary, theme.secondary, Colors.white],
+                delay: const Duration(milliseconds: 400),
+                particleCount: 80,
+                duration: const Duration(milliseconds: 3600),
+              ),
             ),
           ),
+
+          _WrappedWordmark(year: stats.year, username: stats.username),
         ],
-      ),
-    );
-  }
-}
-
-class _RarityStamp extends StatelessWidget {
-  final String text;
-  final Color fill;
-  const _RarityStamp({required this.text, required this.fill});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-      decoration: BoxDecoration(
-        color: fill,
-        border: Border.all(color: Colors.black, width: 3),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.black,
-          fontSize: 17,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 2,
-          fontFamily: 'monospace',
-          height: 1,
-        ),
       ),
     );
   }
@@ -204,5 +143,44 @@ String _rarityLabel(String rarity) {
       return 'UNCOMMON';
     default:
       return 'COMMON';
+  }
+}
+
+class _WrappedKicker extends StatelessWidget {
+  final String text;
+  const _WrappedKicker({required this.text});
+  @override
+  Widget build(BuildContext context) => Text(
+        text,
+        style: TextStyle(
+          color: Colors.white.withValues(alpha: 0.85),
+          fontFamily: 'monospace',
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 2.2,
+        ),
+      );
+}
+
+class _WrappedWordmark extends StatelessWidget {
+  final int year;
+  final String username;
+  const _WrappedWordmark({required this.year, required this.username});
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      right: 28,
+      bottom: 28,
+      child: Text(
+        'yearincode  ·  $year  ·  @$username',
+        style: TextStyle(
+          color: Colors.white.withValues(alpha: 0.55),
+          fontFamily: 'monospace',
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1.2,
+        ),
+      ),
+    );
   }
 }

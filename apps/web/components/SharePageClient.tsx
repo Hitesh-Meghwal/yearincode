@@ -8,14 +8,19 @@ import ShareButtons from "./ShareButtons";
 type Props = {
   stats: WrappedStats;
   shareUrl: string;
+  playerVersion: string;
 };
 
-export default function SharePageClient({ stats, shareUrl }: Props) {
+export default function SharePageClient({ stats, shareUrl, playerVersion }: Props) {
   const [ended, setEnded] = useState(false);
 
   return (
     <div className="flex flex-col items-center gap-6">
-      <WrappedEmbed stats={stats} onEnded={() => setEnded(true)} />
+      <WrappedEmbed
+        stats={stats}
+        playerVersion={playerVersion}
+        onEnded={() => setEnded(true)}
+      />
       <ShareButtons stats={stats} shareUrl={shareUrl} visible={ended} />
       {!ended ? (
         <p className="text-xs text-neutral-500">
