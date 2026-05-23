@@ -2,7 +2,7 @@
 
 **Spotify Wrapped for your git history.** Sign in with GitHub, pick a year, wait ~15 seconds, get a vertical animated recap of that year of your coding life: commits, languages, peak coding hour, top repos, longest streak, your archetype.
 
-- **Live**: <https://yearincode-nine.vercel.app>
+- **Live**: <https://yearincode.com>
 - **Maker**: [@Hitesh-Meghwal](https://github.com/Hitesh-Meghwal)
 - **Spec**: [`docs/PRD.md`](docs/PRD.md) is the source of truth for product + technical decisions. This README is the operating manual.
 
@@ -216,7 +216,7 @@ Animations respect `MediaQuery.disableAnimations` (reduced motion). FadeIn / Sca
 
 1. Connect the repo on Vercel.
 2. **Root Directory** = `apps/web` (we're in a pnpm monorepo).
-3. Add all six env vars from `apps/web/.env.local` to **Production** scope. For prod, swap `NEXT_PUBLIC_SITE_URL` to your Vercel URL (e.g. `https://yearincode-nine.vercel.app`).
+3. Add all six env vars from `apps/web/.env.local` to **Production** scope. For prod, swap `NEXT_PUBLIC_SITE_URL` to your Vercel URL (e.g. `https://yearincode.com`).
 4. Apply all five SQL migrations in the Supabase SQL editor (see step 2 of setup). Specifically `0004_user_github_tokens.sql` is required — without it generation fails with `missing_github_token`.
 5. **GitHub OAuth app**: the Authorization callback URL stays pointing at Supabase's `/auth/v1/callback` — no change needed for prod.
 6. **Supabase → Authentication → URL Configuration**:
@@ -228,7 +228,7 @@ The Flutter player assets in `apps/web/public/player/` are committed to the repo
 
 ### Custom domain (optional)
 
-Once `https://yearincode-nine.vercel.app` is healthy and you've shared with friends, add a custom domain in Vercel and update:
+Once `https://yearincode.com` is healthy and you've shared with friends, add a custom domain in Vercel and update:
 
 - GitHub OAuth: no change (Supabase callback URL is unchanged).
 - Supabase → Authentication → URL Configuration: add the new domain.

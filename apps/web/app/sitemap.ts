@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 function siteUrl(): string {
   return (
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
-    "https://yearincode-nine.vercel.app"
+    "https://yearincode.com"
   );
 }
 
