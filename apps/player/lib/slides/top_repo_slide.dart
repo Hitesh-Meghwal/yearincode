@@ -13,9 +13,14 @@ class TopRepoSlide extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final repo = stats.topRepos.isNotEmpty ? stats.topRepos.first : null;
-    final repoName = repo?.name ?? 'no repos found';
-    final commits = repo?.commits ?? 0;
+    // Anonymise private repo names: share pages are public and the player
+    // is embedded there. We don't want a visitor reading "owner/secret-project"
+    // off a wrapped. Public repo names stay visible.
     final isPrivate = repo?.isPrivate ?? false;
+    final repoName = repo == null
+        ? 'no repos found'
+        : (isPrivate ? 'private repo' : repo.name);
+    final commits = repo?.commits ?? 0;
 
     return SlideScaffold(
       theme: theme,

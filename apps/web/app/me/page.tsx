@@ -150,6 +150,13 @@ function WrappedRow({
         >
           View
         </Link>
+        <Link
+          href={`/generate?year=${year}&force=1`}
+          className="inline-flex items-center justify-center rounded-full border border-neutral-800 px-3 py-1.5 text-xs text-neutral-400 hover:text-white hover:bg-neutral-900 transition-colors"
+          title="Refresh stats from GitHub"
+        >
+          Regenerate
+        </Link>
         <DeleteWrappedButton wrappedId={id} wrappedYear={year} />
       </div>
     </li>

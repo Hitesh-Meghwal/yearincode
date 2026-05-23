@@ -31,6 +31,44 @@ function computeTopRepos(commits: RawCommit[], limit = 5): RepoStat[] {
     .slice(0, limit);
 }
 
+/**
+ * Discipline score, 0–100. Derived from four pillars that already exist in
+ * the aggregator output, no extra GitHub API calls.
+ *
+ *   40%  consistency       active days / 250 (PRD §4.5 "Consistent One" cutoff)
+ *   30%  longest streak    streak / 30 days
+ *   20%  volume            commits / 500
+ *   10%  weekend balance   distance from a "natural" 28.6% weekend share
+ *
+ * Each pillar clamped to [0, 1] before weighting. A perfect score (~100)
+ * means: active most days of the year, long streaks, real volume, and a
+ * weekday/weekend split that looks like an actual sustainable rhythm.
+ */
+function computeDisciplineScore(args: {
+  activeDays: number;
+  longestStreakDays: number;
+  totalCommits: number;
+  weekendRatio: number;
+}): number {
+  const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
+
+  const consistency = clamp01(args.activeDays / 250);
+  const streak = clamp01(args.longestStreakDays / 30);
+  const volume = clamp01(args.totalCommits / 500);
+  // Natural weekend share = 2/7 ≈ 0.286. Score peaks there, drops linearly
+  // to 0 at the extremes (0% or 100% weekend ratio).
+  const NATURAL = 2 / 7;
+  const balance = clamp01(1 - Math.abs(args.weekendRatio - NATURAL) / NATURAL);
+
+  const score =
+    0.40 * consistency +
+    0.30 * streak +
+    0.20 * volume +
+    0.10 * balance;
+
+  return Math.round(score * 100);
+}
+
 function computeCommitMessageStats(commits: RawCommit[]) {
   let longest: CommitMessageMarker = PLACEHOLDER_MARKER;
   let shortest: CommitMessageMarker = PLACEHOLDER_MARKER;
@@ -80,6 +118,12 @@ export function aggregateWrappedStats(
   );
   const messageStats = computeCommitMessageStats(commits);
   const totalRepos = new Set(commits.map((c) => c.repo)).size;
+  const disciplineScore = computeDisciplineScore({
+    activeDays: streaks.totalActiveDays,
+    longestStreakDays: streaks.longestStreak.days,
+    totalCommits: commits.length,
+    weekendRatio: timePatterns.weekendRatio,
+  });
 
   const archetype = detectArchetype({
     peakHour: timePatterns.peakHour,
@@ -117,6 +161,8 @@ export function aggregateWrappedStats(
     peakDayOfWeek: timePatterns.peakDayOfWeek,
     weekendRatio: timePatterns.weekendRatio,
     longestStreak: streaks.longestStreak,
+
+    disciplineScore,
 
     topLanguages,
     topRepos,

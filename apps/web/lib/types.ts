@@ -71,6 +71,10 @@ export type WrappedStats = {
   weekendRatio: number;
   longestStreak: { days: number; from: string; to: string };
 
+  // Discipline score (0–100) derived from active days, longest streak,
+  // commit volume, and weekend balance. See lib/aggregator/index.ts.
+  disciplineScore: number;
+
   // Language breakdown
   topLanguages: LanguageStat[];
 

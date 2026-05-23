@@ -19,6 +19,7 @@ const Map<String, dynamic> demoStatsJson = {
   'peakHourCommits': 312,
   'peakDayOfWeek': 3,
   'weekendRatio': 0.22,
+  'disciplineScore': 78,
   'longestStreak': {
     'days': 23,
     'from': '2025-09-12',

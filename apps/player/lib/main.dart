@@ -14,6 +14,7 @@ import 'slides/languages_slide.dart';
 import 'slides/peak_hour_slide.dart';
 import 'slides/top_repo_slide.dart';
 import 'slides/streak_slide.dart';
+import 'slides/discipline_slide.dart';
 import 'slides/collaborator_slide.dart';
 import 'slides/archetype_slide.dart';
 import 'slides/outro_slide.dart';
@@ -60,6 +61,7 @@ class PlayerHome extends StatelessWidget {
       PeakHourSlide(stats: stats, theme: theme),
       TopRepoSlide(stats: stats, theme: theme),
       StreakSlide(stats: stats, theme: theme),
+      DisciplineSlide(stats: stats, theme: theme),
       CollaboratorSlide(stats: stats, theme: theme),
       ArchetypeSlide(stats: stats, theme: theme),
       OutroSlide(stats: stats, theme: theme),
@@ -73,6 +75,7 @@ class PlayerHome extends StatelessWidget {
       Duration(seconds: 5), // peak hour
       Duration(seconds: 5), // top repo
       Duration(seconds: 5), // streak
+      Duration(seconds: 5), // discipline
       Duration(seconds: 5), // collaborator
       Duration(seconds: 6), // archetype (emphasis)
       Duration(seconds: 6), // outro (viral)

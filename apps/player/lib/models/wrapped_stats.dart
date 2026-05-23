@@ -21,6 +21,9 @@ class WrappedStats {
   final double weekendRatio;
   final Streak longestStreak;
 
+  /// 0–100 derived score; see TypeScript aggregator for the formula.
+  final int disciplineScore;
+
   final List<LanguageStat> topLanguages;
   final List<RepoStat> topRepos;
   final List<CollaboratorStat> topCollaborators;
@@ -48,6 +51,7 @@ class WrappedStats {
     required this.peakDayOfWeek,
     required this.weekendRatio,
     required this.longestStreak,
+    required this.disciplineScore,
     required this.topLanguages,
     required this.topRepos,
     required this.topCollaborators,
@@ -77,6 +81,7 @@ class WrappedStats {
       weekendRatio: (json['weekendRatio'] as num? ?? 0).toDouble(),
       longestStreak: Streak.fromJson(
           (json['longestStreak'] as Map?)?.cast<String, dynamic>() ?? {}),
+      disciplineScore: (json['disciplineScore'] as num? ?? 0).toInt(),
       topLanguages: ((json['topLanguages'] as List?) ?? const [])
           .map((e) => LanguageStat.fromJson((e as Map).cast<String, dynamic>()))
           .toList(),

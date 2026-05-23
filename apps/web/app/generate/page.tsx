@@ -10,7 +10,7 @@ const YEARS_TO_SHOW = 6; // current year + 5 past years
 export default async function GeneratePage({
   searchParams,
 }: {
-  searchParams: Promise<{ year?: string }>;
+  searchParams: Promise<{ year?: string; force?: string }>;
 }) {
   const supabase = await createClient();
   const user = await getUserSafe(supabase);
@@ -32,20 +32,24 @@ export default async function GeneratePage({
   const requestedYear = params.year
     ? Number.parseInt(params.year, 10)
     : null;
+  const force = params.force === "1";
 
   // ---- Branch A: a specific year was requested.
   if (requestedYear !== null && Number.isFinite(requestedYear)) {
-    // If the user already has a wrapped for this year, skip generation and
-    // send them straight to the share page.
-    const { data: existing } = await supabase
-      .from("wrapped_reports")
-      .select("id")
-      .eq("github_username", githubLogin)
-      .eq("year", requestedYear)
-      .maybeSingle();
+    // If they already have a wrapped for this year, send them to the share
+    // page UNLESS ?force=1 was passed (regenerate flow). The API upserts
+    // on conflict, so a forced regen overwrites the existing row in place.
+    if (!force) {
+      const { data: existing } = await supabase
+        .from("wrapped_reports")
+        .select("id")
+        .eq("github_username", githubLogin)
+        .eq("year", requestedYear)
+        .maybeSingle();
 
-    if (existing) {
-      redirect(`/u/${githubLogin}/${requestedYear}`);
+      if (existing) {
+        redirect(`/u/${githubLogin}/${requestedYear}`);
+      }
     }
 
     return <GenerateClient year={requestedYear} />;

@@ -84,14 +84,23 @@ function YearRow({ item, username }: { item: Item; username: string }) {
         )}
       </div>
 
-      <div className="shrink-0">
+      <div className="shrink-0 flex items-center gap-2">
         {item.owned ? (
-          <Link
-            href={sharePath}
-            className="inline-flex items-center justify-center rounded-full border border-neutral-700 px-4 py-2 text-sm text-neutral-100 hover:bg-neutral-900 transition-colors"
-          >
-            View →
-          </Link>
+          <>
+            <Link
+              href={`/generate?year=${item.year}&force=1`}
+              className="text-xs text-neutral-500 hover:text-white transition-colors"
+              title="Regenerate this wrapped from fresh GitHub data"
+            >
+              Regenerate
+            </Link>
+            <Link
+              href={sharePath}
+              className="inline-flex items-center justify-center rounded-full border border-neutral-700 px-4 py-2 text-sm text-neutral-100 hover:bg-neutral-900 transition-colors"
+            >
+              View →
+            </Link>
+          </>
         ) : (
           <Link
             href={`/generate?year=${item.year}`}

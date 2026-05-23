@@ -164,6 +164,15 @@ export default async function SharePage({
                   <> · {stats.longestStreak.from} → {stats.longestStreak.to}</>
                 ) : null}
               </li>
+              {typeof stats.disciplineScore === "number" ? (
+                <li>
+                  Discipline score:{" "}
+                  <span className="text-neutral-100 font-semibold">
+                    {stats.disciplineScore}
+                  </span>
+                  <span className="text-neutral-500"> / 100</span>
+                </li>
+              ) : null}
             </ul>
           </div>
 
@@ -182,7 +191,7 @@ export default async function SharePage({
 
           {stats.topLanguages.length > 0 ? (
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Top languages</h3>
+              <h3 className="text-lg font-semibold">Tech stack</h3>
               <ol className="text-sm text-neutral-300 space-y-1 list-decimal list-inside">
                 {stats.topLanguages.map((l) => (
                   <li key={l.name}>
@@ -193,19 +202,10 @@ export default async function SharePage({
             </div>
           ) : null}
 
-          {stats.topRepos.length > 0 ? (
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Top repos</h3>
-              <ol className="text-sm text-neutral-300 space-y-1 list-decimal list-inside">
-                {stats.topRepos.map((r) => (
-                  <li key={r.name}>
-                    {r.name} — {fmtNumber(r.commits)} commits
-                    {r.isPrivate ? " (private)" : ""}
-                  </li>
-                ))}
-              </ol>
-            </div>
-          ) : null}
+          {/* "Top repos" section intentionally removed: share pages are public
+              and we don't want private repo names visible to any visitor.
+              Repo counts inform the archetype + totals; the names themselves
+              don't add value to viewers. */}
 
           {stats.topCollaborators.length > 0 ? (
             <div className="space-y-2">
