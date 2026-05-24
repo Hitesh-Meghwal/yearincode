@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/wrapped_stats.dart';
 import '../themes/archetype_themes.dart';
 import '../themes/wrapped_palette.dart';
+import '../widgets/codicon.dart';
 import '../widgets/count_up_text.dart';
 import 'slide_scaffold.dart';
 
@@ -23,6 +24,30 @@ class CommitsSlide extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: Stack(
         children: [
+          // Vertical column of git-commit dots — faint, runs down the right
+          // edge as a "commit log spine". Reads as `git log --oneline`
+          // shorthand without overpowering the hero number.
+          Positioned(
+            top: 60,
+            bottom: 60,
+            right: 18,
+            child: FadeIn(
+              delay: const Duration(milliseconds: 80),
+              slideFrom: const Offset(0.04, 0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: List.generate(
+                  9,
+                  (i) => Codicon(
+                    name: 'git-commit',
+                    size: 20,
+                    color: Colors.white.withValues(alpha: 0.16),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
           // Kicker — top-left.
           Positioned(
             top: 56,
@@ -53,16 +78,16 @@ class CommitsSlide extends StatelessWidget {
                       duration: const Duration(milliseconds: 1600),
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 200,
-                        fontWeight: FontWeight.w900,
-                        height: 1.0,
-                        letterSpacing: -6,
-                        fontFamily: 'monospace',
+                        fontSize: 220,
+                        fontWeight: FontWeight.w400,
+                        height: 1.15,
+                        letterSpacing: -2,
+                        fontFamily: 'Boldonse',
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 18),
                 FadeIn(
                   delay: const Duration(milliseconds: 350),
                   child: const Text(
@@ -134,7 +159,7 @@ class _WeeksStrip extends StatelessWidget {
           '52 WEEKS OF COMMITS',
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.5),
-            fontFamily: 'monospace',
+            fontFamily: 'DepartureMono',
             fontSize: 10,
             fontWeight: FontWeight.w700,
             letterSpacing: 1.4,
@@ -185,7 +210,7 @@ class _WrappedKicker extends StatelessWidget {
         text,
         style: TextStyle(
           color: Colors.white.withValues(alpha: 0.78),
-          fontFamily: 'monospace',
+          fontFamily: 'DepartureMono',
           fontSize: 12,
           fontWeight: FontWeight.w700,
           letterSpacing: 2.4,
@@ -206,7 +231,7 @@ class _WrappedWordmark extends StatelessWidget {
         'yearincode  ·  $year  ·  @$username',
         style: TextStyle(
           color: Colors.white.withValues(alpha: 0.5),
-          fontFamily: 'monospace',
+          fontFamily: 'DepartureMono',
           fontSize: 11,
           fontWeight: FontWeight.w600,
           letterSpacing: 1.2,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/wrapped_stats.dart';
 import '../themes/archetype_themes.dart';
 import '../themes/wrapped_palette.dart';
+import '../widgets/codicon.dart';
 import 'slide_scaffold.dart';
 
 /// Wrapped Pattern B — single massive stat. The peak hour HH:00 fills the
@@ -24,6 +25,21 @@ class PeakHourSlide extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: Stack(
         children: [
+          // Oversized clockface codicon — ghosted, sitting low-left behind
+          // the time. Visual cue for "this is about when you ship".
+          Positioned(
+            left: -40,
+            bottom: 60,
+            child: FadeIn(
+              delay: const Duration(milliseconds: 80),
+              child: Codicon(
+                name: 'clockface',
+                size: 320,
+                color: Colors.white.withValues(alpha: 0.06),
+              ),
+            ),
+          ),
+
           // Kicker — top-left.
           Positioned(
             top: 56,
@@ -55,16 +71,16 @@ class PeakHourSlide extends StatelessWidget {
                       softWrap: false,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 200,
-                        fontWeight: FontWeight.w900,
-                        height: 1.0,
-                        letterSpacing: -6,
-                        fontFamily: 'monospace',
+                        fontSize: 220,
+                        fontWeight: FontWeight.w400,
+                        height: 1.15,
+                        letterSpacing: -2,
+                        fontFamily: 'Boldonse',
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 18),
                 FadeIn(
                   delay: const Duration(milliseconds: 350),
                   child: const Text(
@@ -182,7 +198,7 @@ class _HourBarChart extends StatelessWidget {
                             '← ${peakHour.toString().padLeft(2, '0')}',
                             style: const TextStyle(
                               color: Colors.white,
-                              fontFamily: 'monospace',
+                              fontFamily: 'DepartureMono',
                               fontSize: 9,
                               fontWeight: FontWeight.w800,
                               letterSpacing: 0.4,
@@ -208,7 +224,7 @@ class _WrappedKicker extends StatelessWidget {
         text,
         style: TextStyle(
           color: Colors.white.withValues(alpha: 0.78),
-          fontFamily: 'monospace',
+          fontFamily: 'DepartureMono',
           fontSize: 12,
           fontWeight: FontWeight.w700,
           letterSpacing: 2.4,
@@ -229,7 +245,7 @@ class _WrappedWordmark extends StatelessWidget {
         'yearincode  ·  $year  ·  @$username',
         style: TextStyle(
           color: Colors.white.withValues(alpha: 0.5),
-          fontFamily: 'monospace',
+          fontFamily: 'DepartureMono',
           fontSize: 11,
           fontWeight: FontWeight.w600,
           letterSpacing: 1.2,

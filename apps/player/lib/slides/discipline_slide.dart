@@ -83,16 +83,16 @@ class DisciplineSlide extends StatelessWidget {
                       softWrap: false,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 220,
-                        fontWeight: FontWeight.w900,
-                        height: 1.0,
-                        letterSpacing: -8,
-                        fontFamily: 'monospace',
+                        fontSize: 240,
+                        fontWeight: FontWeight.w400,
+                        height: 1.15,
+                        letterSpacing: -2,
+                        fontFamily: 'Boldonse',
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 18),
                 FadeIn(
                   delay: const Duration(milliseconds: 350),
                   child: const Text(
@@ -116,7 +116,7 @@ class DisciplineSlide extends StatelessWidget {
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 1.6,
-                      fontFamily: 'monospace',
+                      fontFamily: 'DepartureMono',
                     ),
                   ),
                 ),
@@ -245,7 +245,7 @@ class _ScoreBarState extends State<_ScoreBar>
                         '${widget.score}/100',
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.85),
-                          fontFamily: 'monospace',
+                          fontFamily: 'DepartureMono',
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.6,
@@ -271,7 +271,7 @@ class _WrappedKicker extends StatelessWidget {
         text,
         style: TextStyle(
           color: Colors.white.withValues(alpha: 0.78),
-          fontFamily: 'monospace',
+          fontFamily: 'DepartureMono',
           fontSize: 12,
           fontWeight: FontWeight.w700,
           letterSpacing: 2.4,
@@ -292,7 +292,7 @@ class _WrappedWordmark extends StatelessWidget {
         'yearincode  ·  $year  ·  @$username',
         style: TextStyle(
           color: Colors.white.withValues(alpha: 0.5),
-          fontFamily: 'monospace',
+          fontFamily: 'DepartureMono',
           fontSize: 11,
           fontWeight: FontWeight.w600,
           letterSpacing: 1.2,

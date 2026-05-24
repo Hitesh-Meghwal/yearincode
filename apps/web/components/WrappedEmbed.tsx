@@ -3,6 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { WrappedStats } from "@/lib/types";
 
+// Synthwave soundtrack that plays under the deck. Lives in /public/audio
+// so it's served verbatim. Lazy autoplay starts muted (browsers allow
+// `autoplay + muted`); the corner button unmutes on user gesture.
+const AUDIO_SRC = "/audio/monume-synthwave-retro-80s-519247.mp3";
+
 type Props = {
   stats: WrappedStats;
   playerVersion: string;
@@ -25,7 +30,9 @@ function encodeStats(stats: WrappedStats): string {
 
 export default function WrappedEmbed({ stats, playerVersion, onEnded }: Props) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [ended, setEnded] = useState(false);
+  const [muted, setMuted] = useState(true);
 
   const src = useMemo(() => {
     const encoded = encodeStats(stats);
@@ -48,13 +55,31 @@ export default function WrappedEmbed({ stats, playerVersion, onEnded }: Props) {
     return () => window.removeEventListener("message", handle);
   }, [onEnded]);
 
-  // Notify parent (the share page) when state changes — exposed via a CSS
-  // custom property + data attribute so the page can react without a second
-  // prop drill.
+  // Sync the mute state to the actual <audio> element. On unmute we also
+  // explicitly call play() — autoplay may have been blocked at mount on
+  // browsers without an existing user gesture, but the click that toggled
+  // the button is a fresh gesture that always allows playback.
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.muted = muted;
+    if (!muted) {
+      audio.play().catch(() => {});
+    }
+  }, [muted]);
+
+  // Pause when the deck ends so the share-buttons reveal isn't underscored
+  // by the loop continuing.
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (ended) audio.pause();
+  }, [ended]);
+
   return (
     <div
       data-wrapped-ended={ended ? "true" : "false"}
-      className="mx-auto aspect-[9/16] rounded-md overflow-hidden bg-black shadow-2xl"
+      className="relative mx-auto aspect-[9/16] rounded-md overflow-hidden bg-black shadow-2xl"
       // Width is the smallest of: parent's available width, the height-
       // constrained equivalent (so the 9:16 portrait fits within ~80% of
       // the viewport height), and the 540px design cap. Width drives,
@@ -66,8 +91,30 @@ export default function WrappedEmbed({ stats, playerVersion, onEnded }: Props) {
         ref={iframeRef}
         src={src}
         title={`${stats.username}'s ${stats.year} in code`}
-        allow="clipboard-write"
+        allow="clipboard-write; autoplay"
         className="w-full h-full border-0 block"
+      />
+
+      {/* Mute / unmute toggle. Translucent dark pill so it reads cleanly on
+          both the dark slides (peak hour, lines) and the bright ones
+          (pink intro, yellow outro). */}
+      <button
+        type="button"
+        onClick={() => setMuted((m) => !m)}
+        aria-label={muted ? "Unmute music" : "Mute music"}
+        title={muted ? "Unmute music" : "Mute music"}
+        className="absolute top-3 right-3 z-10 grid place-items-center h-9 w-9 rounded-full bg-black/55 text-white text-base backdrop-blur-sm transition-colors hover:bg-black/75 active:bg-black/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+      >
+        <span aria-hidden>{muted ? "🔇" : "🔊"}</span>
+      </button>
+
+      <audio
+        ref={audioRef}
+        src={AUDIO_SRC}
+        autoPlay
+        loop
+        muted
+        preload="auto"
       />
     </div>
   );

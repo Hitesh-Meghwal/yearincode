@@ -104,16 +104,16 @@ class CollaboratorSlide extends StatelessWidget {
                       softWrap: false,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 200,
-                        fontWeight: FontWeight.w900,
-                        height: 1.0,
-                        letterSpacing: -6,
-                        fontFamily: 'monospace',
+                        fontSize: 220,
+                        fontWeight: FontWeight.w400,
+                        height: 1.15,
+                        letterSpacing: -2,
+                        fontFamily: 'Boldonse',
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 18),
                 FadeIn(
                   delay: const Duration(milliseconds: 500),
                   child: Text(
@@ -241,7 +241,7 @@ class _WrappedKicker extends StatelessWidget {
         text,
         style: TextStyle(
           color: Colors.white.withValues(alpha: 0.78),
-          fontFamily: 'monospace',
+          fontFamily: 'DepartureMono',
           fontSize: 12,
           fontWeight: FontWeight.w700,
           letterSpacing: 2.4,
@@ -262,7 +262,7 @@ class _WrappedWordmark extends StatelessWidget {
         'yearincode  ·  $year  ·  @$username',
         style: TextStyle(
           color: Colors.white.withValues(alpha: 0.5),
-          fontFamily: 'monospace',
+          fontFamily: 'DepartureMono',
           fontSize: 11,
           fontWeight: FontWeight.w600,
           letterSpacing: 1.2,

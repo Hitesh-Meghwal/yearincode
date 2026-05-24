@@ -48,7 +48,7 @@ class OutroSlide extends StatelessWidget {
               'yearincode  ·  ${stats.year}  ·  @${stats.username}',
               style: TextStyle(
                 color: _ink.withValues(alpha: 0.5),
-                fontFamily: 'monospace',
+                fontFamily: 'DepartureMono',
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 1.2,
@@ -118,7 +118,7 @@ class _TicketStub extends StatelessWidget {
                         'YEARINCODE',
                         style: TextStyle(
                           color: Colors.white,
-                          fontFamily: 'monospace',
+                          fontFamily: 'DepartureMono',
                           fontSize: 32,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 5,
@@ -130,7 +130,7 @@ class _TicketStub extends StatelessWidget {
                         '${stats.year}  ·  @${stats.username}',
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.85),
-                          fontFamily: 'monospace',
+                          fontFamily: 'DepartureMono',
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 1.8,
@@ -199,7 +199,7 @@ class _TicketStub extends StatelessWidget {
                         'yearincode.com',
                         style: TextStyle(
                           color: _ink,
-                          fontFamily: 'monospace',
+                          fontFamily: 'DepartureMono',
                           fontSize: 13,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.4,
@@ -209,7 +209,7 @@ class _TicketStub extends StatelessWidget {
                         'ADMIT ONE',
                         style: TextStyle(
                           color: _ink.withValues(alpha: 0.55),
-                          fontFamily: 'monospace',
+                          fontFamily: 'DepartureMono',
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 2.2,
@@ -249,7 +249,7 @@ class _TicketStatRow extends StatelessWidget {
       textAlign: TextAlign.right,
       style: const TextStyle(
         color: _ink,
-        fontFamily: 'monospace',
+        fontFamily: 'DepartureMono',
         fontSize: 17,
         fontWeight: FontWeight.w900,
         letterSpacing: 0.2,
@@ -266,7 +266,7 @@ class _TicketStatRow extends StatelessWidget {
             label,
             style: TextStyle(
               color: _ink.withValues(alpha: 0.78),
-              fontFamily: 'monospace',
+              fontFamily: 'DepartureMono',
               fontSize: 13,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.4,

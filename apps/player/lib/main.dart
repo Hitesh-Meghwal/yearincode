@@ -28,6 +28,14 @@ class PlayerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Global typography:
+    // - Boldonse (display) carries the giant hero numbers — its ultra-condensed
+    //   forms read as a confident, almost editorial counterpoint to the mono.
+    // - DepartureMono carries every kicker, label, wordmark, and any
+    //   "code-ish" detail. Its retro-CRT bones plant the dev flag.
+    // - Body text falls back to the system sans (Roboto on Android, SF on
+    //   iOS / macOS, Segoe on Windows) so the longer copy stays neutral and
+    //   doesn't fight the display + mono pairing.
     return MaterialApp(
       title: 'yearincode',
       debugShowCheckedModeBanner: false,

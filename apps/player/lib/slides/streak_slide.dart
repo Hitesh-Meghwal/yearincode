@@ -3,6 +3,7 @@ import '../models/wrapped_stats.dart';
 import '../themes/archetype_themes.dart';
 import '../themes/wrapped_palette.dart';
 import '../widgets/calendar_grid.dart';
+import '../widgets/codicon.dart';
 import 'slide_scaffold.dart';
 
 /// Wrapped Pattern B — single massive stat. The longest streak in days,
@@ -39,6 +40,22 @@ class StreakSlide extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: Stack(
         children: [
+          // Big flame codicon — floats top-right at low opacity. Reads as
+          // "this slide is about heat / continuity" before the eye lands on
+          // the number.
+          Positioned(
+            top: 60,
+            right: 28,
+            child: FadeIn(
+              delay: const Duration(milliseconds: 80),
+              child: Codicon(
+                name: 'flame',
+                size: 180,
+                color: Colors.white.withValues(alpha: 0.14),
+              ),
+            ),
+          ),
+
           // Kicker — top-left.
           Positioned(
             top: 56,
@@ -70,16 +87,16 @@ class StreakSlide extends StatelessWidget {
                       softWrap: false,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 200,
-                        fontWeight: FontWeight.w900,
-                        height: 1.0,
-                        letterSpacing: -6,
-                        fontFamily: 'monospace',
+                        fontSize: 220,
+                        fontWeight: FontWeight.w400,
+                        height: 1.15,
+                        letterSpacing: -2,
+                        fontFamily: 'Boldonse',
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 18),
                 FadeIn(
                   delay: const Duration(milliseconds: 350),
                   child: const Text(
@@ -104,7 +121,7 @@ class StreakSlide extends StatelessWidget {
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 1.2,
-                        fontFamily: 'monospace',
+                        fontFamily: 'DepartureMono',
                       ),
                     ),
                   ),
@@ -128,7 +145,7 @@ class StreakSlide extends StatelessWidget {
                     '52 WEEKS  ·  STREAK HIGHLIGHTED',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.5),
-                      fontFamily: 'monospace',
+                      fontFamily: 'DepartureMono',
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.4,
@@ -167,7 +184,7 @@ class _WrappedKicker extends StatelessWidget {
         text,
         style: TextStyle(
           color: Colors.white.withValues(alpha: 0.78),
-          fontFamily: 'monospace',
+          fontFamily: 'DepartureMono',
           fontSize: 12,
           fontWeight: FontWeight.w700,
           letterSpacing: 2.4,
@@ -188,7 +205,7 @@ class _WrappedWordmark extends StatelessWidget {
         'yearincode  ·  $year  ·  @$username',
         style: TextStyle(
           color: Colors.white.withValues(alpha: 0.5),
-          fontFamily: 'monospace',
+          fontFamily: 'DepartureMono',
           fontSize: 11,
           fontWeight: FontWeight.w600,
           letterSpacing: 1.2,

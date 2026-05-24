@@ -62,7 +62,7 @@ class LinesSlide extends StatelessWidget {
                         'net  ${stats.netLines >= 0 ? '+' : ''}${_format(stats.netLines)}',
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.78),
-                          fontFamily: 'monospace',
+                          fontFamily: 'DepartureMono',
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 1.6,
@@ -121,15 +121,15 @@ class _StatHalf extends StatelessWidget {
             softWrap: false,
             style: TextStyle(
               color: valueColor,
-              fontSize: 130,
-              fontWeight: FontWeight.w900,
-              height: 1.0,
-              letterSpacing: -5,
-              fontFamily: 'monospace',
+              fontSize: 150,
+              fontWeight: FontWeight.w400,
+              height: 1.15,
+              letterSpacing: -1.5,
+              fontFamily: 'Boldonse',
             ),
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 12),
         Text(
           label,
           style: TextStyle(
@@ -162,7 +162,7 @@ class _WrappedKicker extends StatelessWidget {
         text,
         style: TextStyle(
           color: Colors.white.withValues(alpha: 0.78),
-          fontFamily: 'monospace',
+          fontFamily: 'DepartureMono',
           fontSize: 11,
           fontWeight: FontWeight.w700,
           letterSpacing: 2.2,
@@ -183,7 +183,7 @@ class _WrappedWordmark extends StatelessWidget {
         'yearincode  ·  $year  ·  @$username',
         style: TextStyle(
           color: Colors.white.withValues(alpha: 0.5),
-          fontFamily: 'monospace',
+          fontFamily: 'DepartureMono',
           fontSize: 11,
           fontWeight: FontWeight.w600,
           letterSpacing: 1.2,

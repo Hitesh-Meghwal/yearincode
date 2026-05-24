@@ -36,8 +36,25 @@ class SlideScaffold extends StatelessWidget {
         children: [
           // Solid color base.
           ColoredBox(color: slideColor),
-          // Very faint grain on top so the block doesn't read as 100% flat
-          // (paper-like texture, no motion).
+          // Tileable 3px-grid texture overlay — the engineering-paper
+          // backdrop. Repeats both axes at native resolution. The opacity is
+          // baked into the PNG itself; we lean on a low BlendMode.softLight
+          // so it picks up the slide color instead of sitting as a white
+          // veil.
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Opacity(
+                opacity: 0.18,
+                child: Image.asset(
+                  'assets/textures/3px-tile.png',
+                  repeat: ImageRepeat.repeat,
+                  filterQuality: FilterQuality.none,
+                ),
+              ),
+            ),
+          ),
+          // Very faint additive grain on top so the block doesn't read as
+          // 100% flat (paper-like texture, no motion).
           CustomPaint(
             painter: _GrainPainter(),
             size: Size.infinite,
@@ -92,10 +109,11 @@ class HeroNumber extends StatelessWidget {
   Widget build(BuildContext context) => DefaultTextStyle.merge(
         style: const TextStyle(
           color: Colors.white,
-          fontSize: 120,
-          fontWeight: FontWeight.w900,
-          height: 1.0,
-          letterSpacing: -3,
+          fontSize: 140,
+          fontWeight: FontWeight.w400,
+          height: 1.15,
+          letterSpacing: -1.5,
+          fontFamily: 'Boldonse',
         ),
         child: child,
       );

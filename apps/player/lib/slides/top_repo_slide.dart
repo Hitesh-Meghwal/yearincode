@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/wrapped_stats.dart';
 import '../themes/archetype_themes.dart';
 import '../themes/wrapped_palette.dart';
+import '../widgets/codicon.dart';
 import 'slide_scaffold.dart';
 
 /// Wrapped Pattern B — single massive stat. The number of commits to the
@@ -25,6 +26,21 @@ class TopRepoSlide extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: Stack(
         children: [
+          // Folder codicon — ghosted top-right. Hints at "this is about a
+          // repo" without needing to name it.
+          Positioned(
+            top: 48,
+            right: 24,
+            child: FadeIn(
+              delay: const Duration(milliseconds: 80),
+              child: Codicon(
+                name: 'folder',
+                size: 200,
+                color: Colors.white.withValues(alpha: 0.10),
+              ),
+            ),
+          ),
+
           // Kicker — top-left.
           Positioned(
             top: 56,
@@ -56,16 +72,16 @@ class TopRepoSlide extends StatelessWidget {
                       softWrap: false,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 200,
-                        fontWeight: FontWeight.w900,
-                        height: 1.0,
-                        letterSpacing: -6,
-                        fontFamily: 'monospace',
+                        fontSize: 220,
+                        fontWeight: FontWeight.w400,
+                        height: 1.15,
+                        letterSpacing: -2,
+                        fontFamily: 'Boldonse',
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 18),
                 FadeIn(
                   delay: const Duration(milliseconds: 350),
                   child: const Text(
@@ -159,7 +175,7 @@ class _RepoDensityGrid extends StatelessWidget {
           'COMMIT DENSITY  ·  TOP REPO',
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.5),
-            fontFamily: 'monospace',
+            fontFamily: 'DepartureMono',
             fontSize: 10,
             fontWeight: FontWeight.w700,
             letterSpacing: 1.4,
@@ -199,7 +215,7 @@ class _WrappedKicker extends StatelessWidget {
         text,
         style: TextStyle(
           color: Colors.white.withValues(alpha: 0.78),
-          fontFamily: 'monospace',
+          fontFamily: 'DepartureMono',
           fontSize: 12,
           fontWeight: FontWeight.w700,
           letterSpacing: 2.4,
@@ -220,7 +236,7 @@ class _WrappedWordmark extends StatelessWidget {
         'yearincode  ·  $year  ·  @$username',
         style: TextStyle(
           color: Colors.white.withValues(alpha: 0.5),
-          fontFamily: 'monospace',
+          fontFamily: 'DepartureMono',
           fontSize: 11,
           fontWeight: FontWeight.w600,
           letterSpacing: 1.2,
