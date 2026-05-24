@@ -35,9 +35,38 @@ export async function GET(request: Request) {
   // reliably returns it (subsequent getSession() calls in newer Supabase
   // versions don't include it). Persist it to user_github_tokens (RLS lets
   // only the service role touch the table). /api/generate reads from there.
+  //
+  // Also fetch viewer.createdAt in the same callback so the year picker can
+  // show every year since the user joined GitHub instead of a fixed
+  // past-5-years window. If the fetch fails for any reason, we still save
+  // the token — the picker has a lazy backfill fallback.
   const providerToken = data.session?.provider_token;
   const userId = data.user?.id;
   if (providerToken && userId) {
+    let githubCreatedAt: string | null = null;
+    try {
+      const viewerResp = await fetch("https://api.github.com/graphql", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${providerToken}`,
+          "content-type": "application/json",
+          accept: "application/vnd.github+json",
+          "user-agent": "yearincode/0.1 (+https://yearincode.com)",
+        },
+        body: JSON.stringify({
+          query: "query { viewer { createdAt } }",
+        }),
+      });
+      if (viewerResp.ok) {
+        const json = (await viewerResp.json()) as {
+          data?: { viewer?: { createdAt?: string } };
+        };
+        githubCreatedAt = json.data?.viewer?.createdAt ?? null;
+      }
+    } catch (e) {
+      console.warn("[auth/callback] viewer.createdAt fetch failed", e);
+    }
+
     try {
       const svc = createServiceRoleClient();
       const { error: upsertError } = await svc
@@ -45,6 +74,7 @@ export async function GET(request: Request) {
         .upsert({
           user_id: userId,
           access_token: providerToken,
+          github_created_at: githubCreatedAt,
           updated_at: new Date().toISOString(),
         });
       if (upsertError) {

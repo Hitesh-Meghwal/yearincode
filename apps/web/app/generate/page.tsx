@@ -1,11 +1,16 @@
 import { redirect } from "next/navigation";
 import { createClient, getUserSafe } from "@/lib/supabase/server";
+import { getOrFetchGithubJoinYear } from "@/lib/github/joinYear";
 import GenerateClient from "./GenerateClient";
 import YearPicker from "./YearPicker";
 
 export const dynamic = "force-dynamic";
 
-const YEARS_TO_SHOW = 6; // current year + 5 past years
+// Hard floor for the year list — GitHub launched in 2008, so any older
+// "join year" is almost certainly a bad date and we cap it. Also the
+// fallback ceiling when we don't have a join year on file.
+const GITHUB_LAUNCH_YEAR = 2008;
+const FALLBACK_YEARS_TO_SHOW = 6;
 
 export default async function GeneratePage({
   searchParams,
@@ -56,9 +61,17 @@ export default async function GeneratePage({
   }
 
   // ---- Branch B: no year requested → show the picker.
+  // Year range: current year down to the user's GitHub join year (capped at
+  // GitHub's launch year for safety). Fallback to past-5-years if we don't
+  // know the join year yet (network failure, RLS quirk, etc.).
+  const joinYear = await getOrFetchGithubJoinYear(user.id);
+  const floor = joinYear
+    ? Math.max(joinYear, GITHUB_LAUNCH_YEAR)
+    : currentYear - (FALLBACK_YEARS_TO_SHOW - 1);
+
   const years: number[] = [];
-  for (let i = 0; i < YEARS_TO_SHOW; i += 1) {
-    years.push(currentYear - i);
+  for (let y = currentYear; y >= floor; y -= 1) {
+    years.push(y);
   }
 
   // Fetch existing wrappeds for this user across the visible years so we can
@@ -79,5 +92,11 @@ export default async function GeneratePage({
     owned: ownedByYear.get(year) ?? null,
   }));
 
-  return <YearPicker username={githubLogin} items={items} />;
+  return (
+    <YearPicker
+      username={githubLogin}
+      items={items}
+      joinYear={joinYear ?? null}
+    />
+  );
 }

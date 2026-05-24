@@ -10,9 +10,10 @@ type Item = {
 type Props = {
   username: string;
   items: Item[];
+  joinYear: number | null;
 };
 
-export default function YearPicker({ username, items }: Props) {
+export default function YearPicker({ username, items, joinYear }: Props) {
   return (
     <main className="min-h-screen px-6 py-8 sm:py-12">
       <div className="mx-auto w-full max-w-2xl">
@@ -47,8 +48,10 @@ export default function YearPicker({ username, items }: Props) {
         </ul>
 
         <p className="mt-6 text-xs text-neutral-600 font-mono">
-          Older history (pre-{items[items.length - 1].year}) coming later. The
-          current year is updated through today.
+          {joinYear
+            ? `Showing every year since you joined GitHub in ${joinYear}.`
+            : `Showing the most recent ${items.length} years.`}
+          {" "}The current year is updated through today.
         </p>
       </div>
     </main>
