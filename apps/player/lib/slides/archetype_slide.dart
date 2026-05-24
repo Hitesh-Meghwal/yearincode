@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../models/wrapped_stats.dart';
 import '../themes/archetype_themes.dart';
 import '../widgets/confetti_burst.dart';
@@ -24,6 +25,26 @@ class ArchetypeSlide extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: Stack(
         children: [
+          // Bespoke world-map backdrop, ONLY for the Globe Trotter archetype.
+          // Treats this rare card like a legendary unlock — most users never
+          // see it, the ones who earn it get art the others don't.
+          if (a.id == 'globe-trotter')
+            Positioned.fill(
+              child: IgnorePointer(
+                child: Opacity(
+                  opacity: 0.16,
+                  child: SvgPicture.asset(
+                    'assets/maps/world.svg',
+                    fit: BoxFit.cover,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.white,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
           // Kicker — top-left.
           Positioned(
             top: 56,
