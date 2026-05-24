@@ -29,19 +29,26 @@ export async function generateMetadata({
   const stats = data.stats_json as WrappedStats;
   const title = `@${stats.username}'s ${stats.year} in code`;
   const description = `${stats.totalCommits.toLocaleString()} commits · ${stats.longestStreak.days}-day streak · ${stats.archetype.name} ${stats.archetype.emoji}`;
+  const path = `/u/${encodeURIComponent(username)}/${stats.year}`;
 
   return {
     title,
     description,
+    alternates: { canonical: path },
     openGraph: {
       title,
       description,
-      type: "website",
+      type: "profile",
+      url: path,
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+    },
+    robots: {
+      index: true,
+      follow: true,
     },
   };
 }
@@ -112,8 +119,36 @@ export default async function SharePage({
   const stats = data.stats_json as WrappedStats;
   const shareUrl = await resolveShareUrl(`/u/${username}/${yearNum}`);
 
+  // Per-wrap JSON-LD. ProfilePage with an embedded CreativeWork lets
+  // Google understand this is a personal recap belonging to a developer —
+  // candidate for rich result rendering once the site has authority.
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    name: `@${stats.username}'s ${stats.year} in code`,
+    url: shareUrl,
+    dateModified: data.updated_at,
+    mainEntity: {
+      "@type": "Person",
+      name: stats.username,
+      alternateName: `@${stats.username}`,
+      url: `https://github.com/${stats.username}`,
+      image: stats.avatarUrl || undefined,
+    },
+    about: {
+      "@type": "CreativeWork",
+      name: `${stats.year} GitHub Wrapped`,
+      description: `${stats.totalCommits.toLocaleString()} commits, ${stats.longestStreak.days}-day longest streak, archetype: ${stats.archetype.name}.`,
+    },
+  };
+
   return (
     <main className="min-h-screen px-4 py-8 sm:py-12">
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="mx-auto w-full max-w-2xl space-y-10">
         <header className="flex items-center gap-4">
           {stats.avatarUrl ? (

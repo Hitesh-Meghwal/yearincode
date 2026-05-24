@@ -57,8 +57,52 @@ export default async function LandingPage({
 
   const params = await searchParams;
 
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
+    "https://yearincode.com";
+
+  // JSON-LD structured data. WebSite gives Google the sitelinks searchbox
+  // hook; SoftwareApplication tells it this is a free web app for devs.
+  // Both are inlined via a <script type="application/ld+json"> so crawlers
+  // pick them up on the very first render.
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "yearincode",
+      url: siteUrl,
+      description:
+        "Turn a year of your GitHub activity into an animated Spotify-Wrapped-style recap.",
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: "yearincode",
+      url: siteUrl,
+      applicationCategory: "DeveloperApplication",
+      operatingSystem: "Web",
+      description:
+        "An animated recap of every commit, streak, language, and archetype from your GitHub year. Shareable in 60 seconds.",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+      },
+      author: {
+        "@type": "Person",
+        name: "Hitesh Meghwal",
+        url: "https://github.com/Hitesh-Meghwal",
+      },
+    },
+  ];
+
   return (
     <main className="relative min-h-screen overflow-hidden">
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <ContributionGridBg />
 
       {/* Nav */}
