@@ -354,4 +354,4 @@ Issues: please open one with the deployed URL of your wrapped + your GitHub user
 
 ## License
 
-Not yet specified. Personal project. Ping the maintainer before reuse.
+[MIT](LICENSE). Use it, fork it, learn from it. Attribution appreciated but not required.
