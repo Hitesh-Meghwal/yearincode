@@ -1,35 +1,100 @@
-# dependencies
+# --- Dependencies ---------------------------------------------------------
 node_modules/
 .pnp
 .pnp.js
+.pnpm-store/
 
-# next.js
+# --- Build output ---------------------------------------------------------
+# Next.js
 .next/
 out/
+# Generic / Flutter / TS
 build/
 dist/
+*.tsbuildinfo
+next-env.d.ts
+.vercel
 
-# env
+# --- Flutter / Dart -------------------------------------------------------
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+**/ios/Flutter/.last_build_id
+**/.fvm/
+
+# --- Environment files ----------------------------------------------------
+# Block every variant; only the example is allowed.
 .env
-.env.local
-.env*.local
+.env.*
 !.env.example
 
-# logs
+# --- Secrets / credentials (belt + suspenders) ----------------------------
+# These should never be in this repo, but the patterns block them at the
+# filesystem level so nobody can accidentally commit one.
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*credentials*.json
+*service-account*.json
+
+# --- Supabase CLI artifacts ----------------------------------------------
+supabase/.temp/
+supabase/.branches/
+
+# --- Test / coverage ------------------------------------------------------
+coverage/
+.nyc_output/
+*.lcov
+
+# --- Logs -----------------------------------------------------------------
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+lerna-debug.log*
 
-# OS
+# --- OS junk --------------------------------------------------------------
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+Desktop.ini
 
-# editor
+# --- Editors / IDEs -------------------------------------------------------
 .vscode/
+!.vscode/settings.json.example
 .idea/
+*.iml
+*.swp
+*.swo
+*~
 
-# misc
-*.tsbuildinfo
-next-env.d.ts
-.vercel
+# --- AI tooling scratch (often holds prompts / private context) ----------
+.aider*
+.cursor/
+.claude/
+.codeium/
+
+# --- Local scratch / backup files ----------------------------------------
+*.bak
+*.tmp
+*.orig
+.tmp/
+_scratch/
+notes-local/
+TODO.local.md
+
+# --- Private maintainer reference (NOT for public repo) ------------------
+# These are internal planning + launch docs. They stay on disk for the
+# maintainer but are excluded from the public mirror.
+docs/PRD.md
+docs/LAUNCH.md

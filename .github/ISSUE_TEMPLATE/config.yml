@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussion / question / idea
+    url: https://github.com/Hitesh-Meghwal/yearincode/discussions
+    about: Not a bug or a concrete feature ask? Open a discussion instead — proposals, questions, and "is this a good idea?" threads live there.
+  - name: Security vulnerability (private disclosure)
+    url: mailto:security@yearincode.com
+    about: Found a vulnerability? Do not open a public issue. Email us — see SECURITY.md for the full policy.

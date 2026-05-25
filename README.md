@@ -1,10 +1,51 @@
+<div align="center">
+
+<img src="apps/web/public/yearincode-logo.svg" alt="yearincode" width="96" height="96" />
+
 # yearincode
 
-**Spotify Wrapped for your git history.** Sign in with GitHub, pick a year, wait ~15 seconds, get a vertical animated recap of that year of your coding life: commits, languages, peak hour, top repo, longest streak, discipline score, your archetype — set to synthwave.
+**Spotify Wrapped for your GitHub year.**
 
-- **Live**: <https://yearincode.com>
-- **Maker**: [@Hitesh-Meghwal](https://github.com/Hitesh-Meghwal)
-- **Spec**: [`docs/PRD.md`](docs/PRD.md) is the source of truth for product + technical decisions. This README is the operating manual.
+Sign in with GitHub, pick a year, wait ~15 seconds, get a vertical animated recap of that year of your coding life: commits, languages, peak hour, top repo, longest streak, discipline score, your archetype — set to synthwave.
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-3EF4A3.svg?style=flat-square)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/Hitesh-Meghwal/yearincode?style=flat-square&color=F24B73)](https://github.com/Hitesh-Meghwal/yearincode/stargazers)
+[![Next.js](https://img.shields.io/badge/Next.js-16-000?style=flat-square&logo=nextdotjs)](https://nextjs.org)
+[![Flutter](https://img.shields.io/badge/Flutter-Web%20wasm-02569B?style=flat-square&logo=flutter)](https://flutter.dev)
+[![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-6F55E7.svg?style=flat-square)](CONTRIBUTING.md)
+
+[**Live demo →**](https://yearincode.com) ·
+[Built by Hitesh Meghwal](https://github.com/Hitesh-Meghwal) ·
+[Contributing](CONTRIBUTING.md) ·
+[Security](SECURITY.md)
+
+</div>
+
+---
+
+## Table of contents
+
+- [Why this exists](#why-this-exists)
+- [What you get](#what-you-get)
+- [Quick start (self-host)](#quick-start-self-host)
+- [Repo layout](#repo-layout)
+- [Prerequisites](#prerequisites)
+- [Local setup](#local-setup)
+- [How it works (the full flow)](#how-it-works-the-full-flow)
+- [Deploying to Vercel](#deploying-to-vercel)
+- [Common gotchas](#common-gotchas)
+- [Contributing](#contributing)
+- [Security](#security)
+- [License](#license)
+
+---
+
+## Why this exists
+
+Spotify Wrapped works because looking back at a year of your own behavior, packaged with personality, is genuinely fun to see — and irresistible to share. Developers have a year's worth of behavior sitting in `git log`, and nobody had built the Wrapped for it. So I did.
+
+Privacy-first by design: yearincode requests **read-only `public_repo` scope only**. We never touch your code, never read private repos, never write anything. Everything you see in the player is derived from public commit metadata (timestamps, additions/deletions, message subject lines). The full data inventory is in [the privacy policy](https://yearincode.com/privacy) and verifiable by reading [`apps/web/lib/github/`](apps/web/lib/github/) — that's the entire surface that talks to GitHub.
 
 ---
 
@@ -31,6 +72,35 @@
 | PWA manifest (installable on Android/iOS/desktop) | `/manifest.webmanifest` |
 | Full favicon set (ICO, PNG, SVG, Apple touch) | served from `apps/web/app/` |
 | `prefers-reduced-motion` respected | CSS + Flutter |
+
+---
+
+## Quick start (self-host)
+
+If you trust the hosted version, just go to **<https://yearincode.com>**. If you want to run your own instance:
+
+```bash
+# 1. Clone + install
+git clone https://github.com/Hitesh-Meghwal/yearincode
+cd yearincode
+pnpm install
+flutter pub get --directory=apps/player
+
+# 2. Configure a Supabase project (free tier) and a GitHub OAuth app.
+#    Details + the 6 SQL migrations are in the "Local setup" section below.
+cp apps/web/.env.example apps/web/.env.local
+# fill in apps/web/.env.local with your Supabase + GitHub OAuth credentials
+
+# 3. Build the Flutter player (Windows / PowerShell)
+.\scripts\build-player.ps1
+# or raw: cd apps/player && flutter build web --release --wasm --base-href "/player/" --pwa-strategy=none
+
+# 4. Run
+pnpm dev
+# open http://localhost:3000
+```
+
+If anything trips, jump straight to [Common gotchas](#common-gotchas) — most setup failures are listed there with the exact fix.
 
 ---
 
@@ -78,8 +148,7 @@ yearincode/
 │       ├── 0005_public_wrapped_stats_add_devs.sql adds total_devs to the stats RPC
 │       └── 0006_add_github_created_at.sql        captures GitHub join date for the year picker
 └── docs/
-    ├── PRD.md                      product + technical spec (source of truth)
-    └── LAUNCH.md                   share copy + day-by-day launch strategy
+    └── BRANCH_PROTECTION.md        manual GitHub-UI checklist for protecting main
 ```
 
 Two pnpm workspaces (`apps/web`, `apps/player`). Flutter build output is committed to `apps/web/public/player/` so Vercel serves it as static assets — no Flutter toolchain on the deploy server.
@@ -198,7 +267,7 @@ Clicking **Generate** navigates to `/generate?year=YYYY`, which:
 
 ### 3. Generation
 
-`GenerateClient` POSTs `/api/generate` with `{ year, force? }` in the body and shows the rotating loading copy (PRD §6.3) while it waits. The route:
+`GenerateClient` POSTs `/api/generate` with `{ year, force? }` in the body and shows rotating loading copy while it waits. The route:
 
 1. Reads the authenticated user via cookies, then reads the GitHub access token from `user_github_tokens` using a service-role client. If no row exists, returns `missing_github_token` and the UI offers a "Sign out & sign in →" action to trigger a fresh capture in `/auth/callback`.
 2. Computes the calendar date range for that year (Jan 1 → Dec 31, or → today if current year).
@@ -215,7 +284,7 @@ If commit count is 0 for the requested year (user wasn't active that year), retu
 
 ### 4. Share page
 
-`/u/[username]/[year]` server-fetches the row, mounts `SharePageClient` → `WrappedEmbed` which renders the Flutter player in an iframe with the stats encoded as `?stats={base64url(JSON)}` plus a `?v={wasmMtime}` cache-buster (the mtime of `main.dart.wasm` — `.last_build_id` doesn't change reliably between Dart-only edits, so we use the wasm file mtime instead). The plain-text stats summary below the player doubles as the accessibility fallback per PRD §5.5.
+`/u/[username]/[year]` server-fetches the row, mounts `SharePageClient` → `WrappedEmbed` which renders the Flutter player in an iframe with the stats encoded as `?stats={base64url(JSON)}` plus a `?v={wasmMtime}` cache-buster (the mtime of `main.dart.wasm` — `.last_build_id` doesn't change reliably between Dart-only edits, so we use the wasm file mtime instead). The plain-text stats summary below the player doubles as the accessibility / no-JS fallback.
 
 Audio: a single `<audio>` element next to the iframe loops `/audio/monume-synthwave-retro-80s-519247.mp3` muted on mount (browsers allow `autoplay + muted`); a 🔇/🔊 toggle in the iframe's top-right corner unmutes it (the click is a fresh user gesture that always satisfies autoplay policy even if the initial muted autoplay was blocked). The audio auto-pauses when the player postMessages `{ type: 'wrapped:ended' }`.
 
@@ -339,19 +408,57 @@ After deploy:
 
 ## Contributing
 
-Conventions:
+PRs welcome — bug fixes, slide polish, new archetypes, SEO improvements. Full guide in [CONTRIBUTING.md](CONTRIBUTING.md). The TL;DR:
 
-- **Commit style**: Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, optionally scoped — `feat(player):`, `feat(seo):`, etc.).
-- **No new dependencies** without thinking twice. Current notable deps:
-  - Web: `next`, `@supabase/ssr`, `@supabase/supabase-js`, `tailwindcss` v4, `next/font` (Geist Sans + Geist Mono), `next/og`.
-  - Flutter player: `flutter_svg` (for Devicon + codicon + map SVGs). No other Flutter packages beyond the SDK + `flutter_test` + `flutter_lints`.
-- **Tests**: none yet. Real tests come after the v1 launch milestone (PRD §11.10).
-- **Editor**: any LSP-aware editor with TypeScript + Dart support.
+- Conventional Commits, scoped (`feat(player):`, `fix(auth):`).
+- Open a PR from a branch — `main` is protected, direct pushes are blocked. See [docs/BRANCH_PROTECTION.md](docs/BRANCH_PROTECTION.md) for the rules.
+- Don't add new dependencies in a feature PR without discussion.
+- Don't edit shipped SQL migrations — add a new one.
+- Don't refactor unrelated code in a feature PR — open a separate refactor PR.
 
-Issues: please open one with the deployed URL of your wrapped + your GitHub username so we can reproduce.
+**Maintainer:** all PRs route to [@Hitesh-Meghwal](https://github.com/Hitesh-Meghwal) via [`CODEOWNERS`](.github/CODEOWNERS).
+
+**Bug?** Use the [bug report template](.github/ISSUE_TEMPLATE/bug_report.md) — please include the deployed URL of your wrapped + your GitHub username so we can reproduce.
+
+**Idea?** Open a [GitHub Discussion](https://github.com/Hitesh-Meghwal/yearincode/discussions) before filing a feature request — saves churn on "is this a fit" questions.
+
+---
+
+## Security
+
+Found a vulnerability? **Do not open a public issue.** Email `security@yearincode.com` (or open a private security advisory on GitHub). Full disclosure policy in [SECURITY.md](SECURITY.md) — TL;DR: we follow a 90-day responsible-disclosure embargo, the supported version is the latest commit on `main`, and we'll credit you on the fix commit unless you'd rather stay anonymous.
+
+The two highest-value security surfaces to scrutinize are:
+
+- **`apps/web/app/api/generate/route.ts`** + **`apps/web/lib/github/`** — the only code that holds a user's GitHub access token. Token is RLS-locked to service-role-only access in the `user_github_tokens` table, never exposed to the browser.
+- **`apps/web/lib/supabase/serviceRole.ts`** + every callsite — the service-role client. Currently scoped to two flows (token read + view-count increment); over-use here is the most likely future foot-gun.
+
+---
+
+## Acknowledgements
+
+Built on the shoulders of:
+
+- [Next.js](https://nextjs.org) + [Vercel](https://vercel.com) (hosting + edge OG)
+- [Flutter](https://flutter.dev) (Web wasm renderer for the slide player)
+- [Supabase](https://supabase.com) (Postgres + Auth + RLS)
+- [Devicon](https://devicon.dev) — open-source language logos (the Languages slide tiles)
+- [VS Code Codicons](https://microsoft.github.io/vscode-codicons) — the decorative codicon layer
+- [Twemoji](https://github.com/jdecked/twemoji) — cross-platform color emoji parity
+- [Boldonse](https://fonts.google.com/specimen/Boldonse) (Google Fonts) — the giant display numbers
+- [Departure Mono](https://departuremono.com) — the retro-CRT mono used on every kicker + wordmark
+- [Pixabay](https://pixabay.com/music/) — synthwave loop on the player
 
 ---
 
 ## License
 
 [MIT](LICENSE). Use it, fork it, learn from it. Attribution appreciated but not required.
+
+---
+
+<div align="center">
+
+If yearincode made you smile, [share your wrap](https://yearincode.com) — it's the only marketing we have.
+
+</div>
