@@ -37,18 +37,20 @@ class SlideScaffold extends StatelessWidget {
           // Solid color base.
           ColoredBox(color: slideColor),
           // Tileable 3px-grid texture overlay — the engineering-paper
-          // backdrop. Repeats both axes at native resolution. The opacity is
-          // baked into the PNG itself; we lean on a low BlendMode.softLight
-          // so it picks up the slide color instead of sitting as a white
-          // veil.
+          // backdrop. Uses FilterQuality.medium so the grid stays smooth at
+          // the non-integer scale ratios the iframe gives us (the canvas is
+          // 540×960, the iframe is typically 360–540 wide on phones / 480 on
+          // laptops). FilterQuality.none caused jagged moiré on those
+          // sub-pixel ratios. Opacity dialled down from 0.18 to 0.12 so the
+          // texture sits as a hint instead of competing with the type.
           Positioned.fill(
             child: IgnorePointer(
               child: Opacity(
-                opacity: 0.18,
+                opacity: 0.12,
                 child: Image.asset(
                   'assets/textures/3px-tile.png',
                   repeat: ImageRepeat.repeat,
-                  filterQuality: FilterQuality.none,
+                  filterQuality: FilterQuality.medium,
                 ),
               ),
             ),

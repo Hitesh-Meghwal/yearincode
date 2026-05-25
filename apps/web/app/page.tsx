@@ -1,12 +1,20 @@
 import Link from "next/link";
 import { createClient, getUserSafe } from "@/lib/supabase/server";
+import { LANDING_DEMO_STATS } from "@/lib/landingDemoStats";
 import SignInButton from "./SignInButton";
 import SignOutLink from "./SignOutLink";
 import SampleEmbed from "./SampleEmbed";
 import ArchetypeShowcase from "./ArchetypeShowcase";
 import ContributionGridBg from "./ContributionGridBg";
 
-const SAMPLE_PATH = "/u/Hitesh-Meghwal/2026";
+// The "see an example" sample on the landing uses a synthetic wrapped (NOT
+// tied to any real GitHub user). Three reasons:
+//   1. Avoid exposing the maintainer's (or any first user's) actual data on
+//      the public homepage.
+//   2. Predictable visuals — every visitor sees the same polished sample.
+//   3. One fewer DB query on the busiest route.
+// The data lives in @/lib/landingDemoStats.
+const sampleStats: unknown = LANDING_DEMO_STATS;
 
 export default async function LandingPage({
   searchParams,
@@ -18,23 +26,6 @@ export default async function LandingPage({
   const githubLogin =
     (user?.user_metadata?.user_name as string | undefined) ??
     (user?.user_metadata?.preferred_username as string | undefined);
-
-  // For the sample iframe we want stats; fetch the row that backs SAMPLE_PATH
-  // if it exists. Falls back to a static teaser if not.
-  const sampleSlug = SAMPLE_PATH.replace(/^\/u\//, "").split("/");
-  const sampleUsername = sampleSlug[0];
-  const sampleYear = Number.parseInt(sampleSlug[1], 10);
-
-  let sampleStats: unknown = null;
-  if (Number.isFinite(sampleYear)) {
-    const { data: sample } = await supabase
-      .from("wrapped_reports")
-      .select("stats_json")
-      .eq("github_username", sampleUsername)
-      .eq("year", sampleYear)
-      .maybeSingle();
-    sampleStats = sample?.stats_json ?? null;
-  }
 
   // Aggregate stats for the social-proof line. RPC from migrations
   // 0003 + 0005 — if 0005 isn't applied, total_devs falls back to
@@ -195,24 +186,13 @@ export default async function LandingPage({
       {/* Sample */}
       <section className="px-6 pb-24">
         <div className="mx-auto max-w-5xl">
-          <div className="flex items-end justify-between mb-6">
+          <div className="mb-6">
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
               See it in motion
             </h2>
-            {sampleStats ? (
-              <Link
-                href={SAMPLE_PATH}
-                className="text-sm text-neutral-400 hover:text-white transition-colors"
-              >
-                Open this wrapped →
-              </Link>
-            ) : null}
           </div>
 
-          <SampleEmbed
-            stats={sampleStats}
-            fallbackHref={SAMPLE_PATH}
-          />
+          <SampleEmbed stats={sampleStats} fallbackHref="/" />
         </div>
       </section>
 
