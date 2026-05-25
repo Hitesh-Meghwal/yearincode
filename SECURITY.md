@@ -4,7 +4,7 @@
 
 If you've found a security issue, **do not open a public GitHub issue**. Public issues = a window for attackers between disclosure and patch.
 
-Email **security@yearincode.com** with:
+Email **hiteshm.devlog@gmail.com** with the subject line **"[security] yearincode"** so it lands cleanly. Include:
 
 - A description of the vulnerability and its impact
 - Steps to reproduce (proof-of-concept code or URLs are great, but optional)

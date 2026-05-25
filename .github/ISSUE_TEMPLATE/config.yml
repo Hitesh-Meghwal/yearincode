@@ -4,5 +4,5 @@ contact_links:
     url: https://github.com/Hitesh-Meghwal/yearincode/discussions
     about: Not a bug or a concrete feature ask? Open a discussion instead — proposals, questions, and "is this a good idea?" threads live there.
   - name: Security vulnerability (private disclosure)
-    url: mailto:security@yearincode.com
+    url: mailto:hiteshm.devlog@gmail.com?subject=%5Bsecurity%5D%20yearincode
     about: Found a vulnerability? Do not open a public issue. Email us — see SECURITY.md for the full policy.

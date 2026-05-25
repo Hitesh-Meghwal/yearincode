@@ -347,37 +347,11 @@ Submitted to Google Search Console + Bing Webmaster Tools (Bing covers DuckDuckG
 
 ---
 
-## Deploying to Vercel
+## Deployment
 
-1. Connect the repo on Vercel.
-2. **Root Directory** = `apps/web` (we're in a pnpm monorepo).
-3. Add all six env vars from `apps/web/.env.local` to **Production** scope. For prod, set `NEXT_PUBLIC_SITE_URL=https://yearincode.com` (not localhost — every canonical URL, sitemap entry, and OG URL derives from this).
-4. Apply all five SQL migrations in the Supabase SQL editor (see step 2 of setup). Specifically `0004_user_github_tokens.sql` is required — without it generation fails with `missing_github_token`.
-5. **GitHub OAuth app**: the Authorization callback URL stays pointing at Supabase's `/auth/v1/callback` — no change needed for prod.
-6. **Supabase → Authentication → URL Configuration**:
-   - Site URL: change to `https://yearincode.com`
-   - Redirect URLs: add `https://yearincode.com/auth/callback`
-7. Vercel doesn't re-bake existing builds when you add env vars — trigger a redeploy (Deployments → ⋯ → Redeploy) after step 3 or 6.
+The canonical deployment is **<https://yearincode.com>**. If you want to run your own private instance for personal or learning use, the codebase ships as a standard Next.js + Supabase app and deploys to any Node-compatible host. Bring your own Supabase project, your own GitHub OAuth app, and your own credentials — full configuration is in the [Local setup](#local-setup) section above. Refer to your host's documentation for environment variables and build commands.
 
-The Flutter player assets in `apps/web/public/player/` are committed to the repo, so Vercel deploys them as static files. **After any Flutter change**, rebuild locally (`scripts/build-player.ps1`) and commit the regenerated `apps/web/public/player/` directory.
-
-### Custom domain
-
-`yearincode.com` is the canonical domain. To attach it (already done in production):
-
-- GitHub OAuth: no change (Supabase callback URL is unchanged).
-- Supabase → Authentication → URL Configuration: add the new domain.
-- Vercel env: `NEXT_PUBLIC_SITE_URL=https://yearincode.com` → redeploy.
-
-### Search Console + indexing
-
-After deploy:
-
-1. Verify ownership at <https://search.google.com/search-console> (the verification token in `app/layout.tsx` makes this one-click).
-2. Submit `https://yearincode.com/sitemap.xml`.
-3. URL Inspection → `https://yearincode.com` → Request Indexing.
-4. Repeat at <https://www.bing.com/webmasters> — import from GSC instead of re-verifying.
-5. Search-result favicon refresh takes 3–14 days after the first crawl; can't be forced.
+The Flutter player assets in `apps/web/public/player/` are committed to the repo, so they're served as static files. After any Flutter change, rebuild locally (`scripts/build-player.ps1`) and commit the regenerated directory.
 
 ---
 
@@ -426,7 +400,7 @@ PRs welcome — bug fixes, slide polish, new archetypes, SEO improvements. Full 
 
 ## Security
 
-Found a vulnerability? **Do not open a public issue.** Email `security@yearincode.com` (or open a private security advisory on GitHub). Full disclosure policy in [SECURITY.md](SECURITY.md) — TL;DR: we follow a 90-day responsible-disclosure embargo, the supported version is the latest commit on `main`, and we'll credit you on the fix commit unless you'd rather stay anonymous.
+Found a vulnerability? **Do not open a public issue.** Email `hiteshm.devlog@gmail.com` (or open a private security advisory on GitHub). Full disclosure policy in [SECURITY.md](SECURITY.md) — TL;DR: we follow a 90-day responsible-disclosure embargo, the supported version is the latest commit on `main`, and we'll credit you on the fix commit unless you'd rather stay anonymous.
 
 The two highest-value security surfaces to scrutinize are:
 
@@ -453,7 +427,7 @@ Built on the shoulders of:
 
 ## License
 
-[MIT](LICENSE). Use it, fork it, learn from it. Attribution appreciated but not required.
+Released under the [MIT License](LICENSE). You're welcome to use, fork, study, and build on this code in your own projects. If it helps you, a link back to the repo or a mention is always appreciated — but never a requirement.
 
 ---
 
