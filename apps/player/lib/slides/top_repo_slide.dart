@@ -4,6 +4,7 @@ import '../models/wrapped_stats.dart';
 import '../themes/archetype_themes.dart';
 import '../themes/wrapped_palette.dart';
 import '../widgets/codicon.dart';
+import '../widgets/count_up_text.dart';
 import 'slide_scaffold.dart';
 
 /// Wrapped Pattern B — single massive stat. The number of commits to the
@@ -66,10 +67,10 @@ class TopRepoSlide extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: Alignment.centerLeft,
-                    child: Text(
-                      '$commits',
-                      maxLines: 1,
-                      softWrap: false,
+                    child: CountUpText(
+                      value: commits,
+                      duration: const Duration(milliseconds: 1600),
+                      textAlign: TextAlign.left,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 220,

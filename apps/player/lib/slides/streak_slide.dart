@@ -4,6 +4,7 @@ import '../themes/archetype_themes.dart';
 import '../themes/wrapped_palette.dart';
 import '../widgets/calendar_grid.dart';
 import '../widgets/codicon.dart';
+import '../widgets/count_up_text.dart';
 import 'slide_scaffold.dart';
 
 /// Wrapped Pattern B — single massive stat. The longest streak in days,
@@ -81,10 +82,10 @@ class StreakSlide extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: Alignment.centerLeft,
-                    child: Text(
-                      '${s.days}',
-                      maxLines: 1,
-                      softWrap: false,
+                    child: CountUpText(
+                      value: s.days,
+                      duration: const Duration(milliseconds: 1600),
+                      textAlign: TextAlign.left,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 220,

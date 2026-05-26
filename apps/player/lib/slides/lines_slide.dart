@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/wrapped_stats.dart';
 import '../themes/archetype_themes.dart';
 import '../themes/wrapped_palette.dart';
+import '../widgets/count_up_text.dart';
 import 'slide_scaffold.dart';
 
 /// Wrapped Pattern B — doubled. Top half: additions. Bottom half: deletions.
@@ -115,10 +116,10 @@ class _StatHalf extends StatelessWidget {
         FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
-          child: Text(
-            _format(value),
-            maxLines: 1,
-            softWrap: false,
+          child: CountUpText(
+            value: value,
+            duration: const Duration(milliseconds: 1600),
+            textAlign: TextAlign.left,
             style: TextStyle(
               color: valueColor,
               fontSize: 150,

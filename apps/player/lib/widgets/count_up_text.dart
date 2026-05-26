@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'motion.dart';
 
-/// Animates a number counting from 0 → [value] with elastic-ish easing.
+/// Animates a number counting from 0 → [value] with ease-out cubic. Snaps
+/// straight to the final value when the user has `prefers-reduced-motion`
+/// set in their OS / browser.
 class CountUpText extends StatefulWidget {
   final int value;
   final Duration duration;
   final TextStyle? style;
   final String prefix;
   final String suffix;
+  final TextAlign? textAlign;
 
   const CountUpText({
     super.key,
@@ -15,6 +19,7 @@ class CountUpText extends StatefulWidget {
     this.style,
     this.prefix = '',
     this.suffix = '',
+    this.textAlign,
   });
 
   @override
@@ -25,13 +30,25 @@ class _CountUpTextState extends State<CountUpText>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late Animation<double> _animation;
+  bool _started = false;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(vsync: this, duration: widget.duration);
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
-    _controller.forward();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (reduceMotionOf(context)) {
+      _controller.value = 1.0;
+    } else {
+      _controller.forward();
+    }
   }
 
   @override
@@ -50,7 +67,9 @@ class _CountUpTextState extends State<CountUpText>
         return Text(
           '${widget.prefix}$formatted${widget.suffix}',
           style: widget.style,
-          textAlign: TextAlign.center,
+          textAlign: widget.textAlign ?? TextAlign.center,
+          maxLines: 1,
+          softWrap: false,
         );
       },
     );

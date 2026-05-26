@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/wrapped_stats.dart';
 import '../themes/archetype_themes.dart';
 import '../themes/wrapped_palette.dart';
+import '../widgets/count_up_text.dart';
 import '../widgets/twemoji_image.dart';
 import 'slide_scaffold.dart';
 
@@ -98,10 +99,10 @@ class CollaboratorSlide extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: Alignment.centerLeft,
-                    child: Text(
-                      '$statValue',
-                      maxLines: 1,
-                      softWrap: false,
+                    child: CountUpText(
+                      value: statValue,
+                      duration: const Duration(milliseconds: 1600),
+                      textAlign: TextAlign.left,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 220,
