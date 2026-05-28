@@ -24,7 +24,11 @@ export type ArchetypeInput = {
 
 type ArchetypeDef = Omit<Archetype, "id"> & { id: ArchetypeId };
 
-const ARCHETYPES: Record<ArchetypeId, ArchetypeDef> = {
+// Keyed by the yearly archetype IDs only. `Record<string, ...>` (not
+// `Record<ArchetypeId, ...>`) because ArchetypeId also includes the lifetime
+// IDs, which live in archetypesLifetime.ts — this registry doesn't implement
+// those.
+const ARCHETYPES: Record<string, ArchetypeDef> = {
   "night-owl-refactorer": {
     id: "night-owl-refactorer",
     name: "The Night Owl Refactorer",
@@ -244,5 +248,5 @@ export function detectArchetype(input: ArchetypeInput): Archetype {
   return ARCHETYPES.default;
 }
 
-export const ARCHETYPE_REGISTRY: Record<ArchetypeId, ArchetypeDef> = ARCHETYPES;
+export const ARCHETYPE_REGISTRY: Record<string, ArchetypeDef> = ARCHETYPES;
 export type { ArchetypeRarity };

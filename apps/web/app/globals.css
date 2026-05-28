@@ -44,3 +44,22 @@ body {
   from { transform: translate3d(-50%, 0, 0); }
   to   { transform: translate3d(0, 0, 0); }
 }
+
+/* Hero entrance: a staggered fade + rise. Applied via .rise with an inline
+   animation-delay so each line settles a beat after the one above. ease-out
+   exponential curve (no bounce). */
+@keyframes rise {
+  from { opacity: 0; transform: translate3d(0, 16px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+.rise {
+  opacity: 0;
+  animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Soft idle drift for the cursor caret in the username input placeholder. */
+@keyframes caret-blink {
+  0%, 49%  { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}

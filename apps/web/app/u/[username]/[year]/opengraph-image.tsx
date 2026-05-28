@@ -28,6 +28,26 @@ function themeFor(id: string): {
       return { primary: "#F97316", secondary: "#FFFFFF", background: "#1A0E05" };
     case "polyglot":
       return { primary: "#10B981", secondary: "#EC4899", background: "#02180F" };
+    // Lifetime ("Since Day One") archetypes — must match the Flutter player's
+    // archetype_themes.dart exactly so the OG card and player agree.
+    case "architect":
+      return { primary: "#A78BFA", secondary: "#FBBF24", background: "#150B2E" };
+    case "og":
+      return { primary: "#34D399", secondary: "#FFFFFF", background: "#04140E" };
+    case "veteran":
+      return { primary: "#F59E0B", secondary: "#FFFFFF", background: "#1A1206" };
+    case "lifer":
+      return { primary: "#22D3EE", secondary: "#FFFFFF", background: "#04141A" };
+    case "prolific":
+      return { primary: "#F472B6", secondary: "#A78BFA", background: "#1A0A16" };
+    case "comeback":
+      return { primary: "#FB923C", secondary: "#FFFFFF", background: "#1A0E05" };
+    case "journeyman":
+      return { primary: "#60A5FA", secondary: "#FBBF24", background: "#0A0F1F" };
+    case "rookie":
+      return { primary: "#4ADE80", secondary: "#FFFFFF", background: "#04140A" };
+    case "builder":
+      return { primary: "#3B82F6", secondary: "#F59E0B", background: "#0A0F1F" };
     default:
       return { primary: "#3B82F6", secondary: "#F59E0B", background: "#0A0F1F" };
   }
@@ -43,14 +63,15 @@ export default async function OgImage({
   params: Promise<{ username: string; year: string }>;
 }) {
   const { username, year } = await params;
-  const yearNum = Number.parseInt(year, 10);
+  // The `all` slug ↔ the all-time sentinel year 0; else a numeric year.
+  const queryYear = year === "all" ? 0 : Number.parseInt(year, 10);
 
   const supabase = await createClient();
   const { data } = await supabase
     .from("wrapped_reports")
     .select("stats_json")
     .eq("github_username", username)
-    .eq("year", yearNum)
+    .eq("year", queryYear)
     .maybeSingle();
 
   if (!data) {
@@ -129,7 +150,11 @@ export default async function OgImage({
                 marginTop: 4,
               }}
             >
-              {`${stats.year} in code`}
+              {stats.isAllTime
+                ? stats.yearsActive
+                  ? `Since Day One · ${stats.yearsActive} years`
+                  : "Since Day One"
+                : `${stats.year} in code`}
             </div>
           </div>
         </div>

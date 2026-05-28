@@ -1,4 +1,5 @@
 export type ArchetypeId =
+  // Yearly archetypes (behavior pattern in a single year).
   | "night-owl-refactorer"
   | "weekend-warrior"
   | "metronome"
@@ -13,7 +14,17 @@ export type ArchetypeId =
   | "social-coder"
   | "lone-wolf"
   | "globe-trotter"
-  | "default";
+  | "default"
+  // Lifetime archetypes ("Since Day One" — tenure + scale over a career).
+  | "architect"
+  | "og"
+  | "veteran"
+  | "lifer"
+  | "prolific"
+  | "comeback"
+  | "journeyman"
+  | "rookie"
+  | "builder";
 
 export type ArchetypeRarity = "common" | "uncommon" | "rare" | "legendary";
 
@@ -52,9 +63,21 @@ export type WrappedStats = {
   // Identity
   username: string;
   avatarUrl: string;
+  // Calendar year for a yearly wrap. For the all-time "Since Day One" wrap
+  // this is the sentinel 0 (the public URL uses the slug `/u/{username}/all`).
   year: number;
   generatedAt: string;
   dateRange: { from: string; to: string };
+
+  // All-time ("Since Day One") metadata. Present only when isAllTime is true;
+  // a normal yearly wrap leaves these undefined. dateRange spans the GitHub
+  // join date → now, and `archetype` is drawn from the lifetime engine
+  // (lib/archetypesLifetime.ts) rather than the yearly one.
+  isAllTime?: boolean;
+  accountCreatedYear?: number; // GitHub join year
+  yearsActive?: number; // distinct calendar years with >= 1 commit
+  firstActiveYear?: number;
+  lastActiveYear?: number;
 
   // Totals
   totalCommits: number;

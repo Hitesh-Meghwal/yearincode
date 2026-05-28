@@ -7,29 +7,47 @@ import { getPlayerVersion } from "@/lib/playerVersion";
 import { createClient } from "@/lib/supabase/server";
 import type { WrappedStats } from "@/lib/types";
 
+// Maps the route's `year` slug to the DB query year. The public slug `all`
+// ↔ the all-time sentinel 0; everything else is a numeric calendar year.
+// Returns null for anything that isn't a valid year/slug.
+function resolveQueryYear(year: string): number | null {
+  if (year === "all") return 0;
+  const n = Number.parseInt(year, 10);
+  return Number.isFinite(n) ? n : null;
+}
+
+// The path segment we link back to: `all` for all-time, else the numeric year.
+function yearSlug(stats: WrappedStats): string {
+  return stats.isAllTime ? "all" : String(stats.year);
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ username: string; year: string }>;
 }): Promise<Metadata> {
   const { username, year } = await params;
-  const yearNum = Number.parseInt(year, 10);
-  if (!Number.isFinite(yearNum)) return { title: "yearincode" };
+  const queryYear = resolveQueryYear(year);
+  if (queryYear === null) return { title: "yearincode" };
 
   const supabase = await createClient();
   const { data } = await supabase
     .from("wrapped_reports")
     .select("stats_json")
     .eq("github_username", username)
-    .eq("year", yearNum)
+    .eq("year", queryYear)
     .maybeSingle();
 
   if (!data) return { title: `${username} — yearincode` };
 
   const stats = data.stats_json as WrappedStats;
-  const title = `@${stats.username}'s ${stats.year} in code`;
-  const description = `${stats.totalCommits.toLocaleString()} commits · ${stats.longestStreak.days}-day streak · ${stats.archetype.name} ${stats.archetype.emoji}`;
-  const path = `/u/${encodeURIComponent(username)}/${stats.year}`;
+  const title = stats.isAllTime
+    ? `@${stats.username}'s GitHub story · Since Day One`
+    : `@${stats.username}'s ${stats.year} in code`;
+  const description = stats.isAllTime
+    ? `${stats.yearsActive ?? 0} years, ${stats.totalCommits.toLocaleString()} commits · ${stats.archetype.name} ${stats.archetype.emoji}`
+    : `${stats.totalCommits.toLocaleString()} commits · ${stats.longestStreak.days}-day streak · ${stats.archetype.name} ${stats.archetype.emoji}`;
+  const path = `/u/${encodeURIComponent(username)}/${yearSlug(stats)}`;
 
   return {
     title,
@@ -86,15 +104,15 @@ export default async function SharePage({
   params: Promise<{ username: string; year: string }>;
 }) {
   const { username, year } = await params;
-  const yearNum = Number.parseInt(year, 10);
-  if (!Number.isFinite(yearNum)) notFound();
+  const queryYear = resolveQueryYear(year);
+  if (queryYear === null) notFound();
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("wrapped_reports")
     .select("stats_json, view_count, created_at, updated_at, is_public")
     .eq("github_username", username)
-    .eq("year", yearNum)
+    .eq("year", queryYear)
     .maybeSingle();
 
   if (error) {
@@ -103,12 +121,12 @@ export default async function SharePage({
   if (!data) notFound();
 
   // Increment the view counter atomically via an SQL RPC. Fire-and-forget —
-  // the page render shouldn't depend on it succeeding. Migration:
-  // supabase/migrations/0002_view_count_rpc.sql
+  // the page render shouldn't depend on it succeeding. All-time passes the
+  // sentinel year 0. Migration: supabase/migrations/0002_view_count_rpc.sql
   void supabase
     .rpc("increment_wrapped_view", {
       p_username: username,
-      p_year: yearNum,
+      p_year: queryYear,
     })
     .then(({ error: rpcError }) => {
       if (rpcError) {
@@ -117,7 +135,7 @@ export default async function SharePage({
     });
 
   const stats = data.stats_json as WrappedStats;
-  const shareUrl = await resolveShareUrl(`/u/${username}/${yearNum}`);
+  const shareUrl = await resolveShareUrl(`/u/${username}/${yearSlug(stats)}`);
 
   // Per-wrap JSON-LD. ProfilePage with an embedded CreativeWork lets
   // Google understand this is a personal recap belonging to a developer —
@@ -125,7 +143,9 @@ export default async function SharePage({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ProfilePage",
-    name: `@${stats.username}'s ${stats.year} in code`,
+    name: stats.isAllTime
+      ? `@${stats.username}'s GitHub story · Since Day One`
+      : `@${stats.username}'s ${stats.year} in code`,
     url: shareUrl,
     dateModified: data.updated_at,
     mainEntity: {
@@ -137,8 +157,12 @@ export default async function SharePage({
     },
     about: {
       "@type": "CreativeWork",
-      name: `${stats.year} GitHub Wrapped`,
-      description: `${stats.totalCommits.toLocaleString()} commits, ${stats.longestStreak.days}-day longest streak, archetype: ${stats.archetype.name}.`,
+      name: stats.isAllTime
+        ? "All-time GitHub Wrapped"
+        : `${stats.year} GitHub Wrapped`,
+      description: stats.isAllTime
+        ? `${stats.yearsActive ?? 0} years active, ${stats.totalCommits.toLocaleString()} commits, archetype: ${stats.archetype.name}.`
+        : `${stats.totalCommits.toLocaleString()} commits, ${stats.longestStreak.days}-day longest streak, archetype: ${stats.archetype.name}.`,
     },
   };
 
@@ -163,7 +187,11 @@ export default async function SharePage({
           ) : null}
           <div>
             <h1 className="text-2xl font-semibold">@{stats.username}</h1>
-            <p className="text-sm text-neutral-400">{stats.year} in code</p>
+            <p className="text-sm text-neutral-400">
+              {stats.isAllTime
+                ? `Since Day One${stats.accountCreatedYear ? ` · ${stats.accountCreatedYear}–now` : ""}`
+                : `${stats.year} in code`}
+            </p>
           </div>
         </header>
 

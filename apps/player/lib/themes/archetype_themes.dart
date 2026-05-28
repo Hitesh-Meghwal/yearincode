@@ -39,6 +39,54 @@ const Map<String, ArchetypeTheme> archetypeThemes = {
     secondary: Color(0xFFEC4899),
     background: Color(0xFF02180F),
   ),
+
+  // All-time / "Since Day One" archetypes. Colors are pinned to match the
+  // web OG card so the share image and the player read as the same artwork.
+  'architect': ArchetypeTheme(
+    primary: Color(0xFFA78BFA),
+    secondary: Color(0xFFFBBF24),
+    background: Color(0xFF150B2E),
+  ),
+  'og': ArchetypeTheme(
+    primary: Color(0xFF34D399),
+    secondary: Color(0xFFFFFFFF),
+    background: Color(0xFF04140E),
+  ),
+  'veteran': ArchetypeTheme(
+    primary: Color(0xFFF59E0B),
+    secondary: Color(0xFFFFFFFF),
+    background: Color(0xFF1A1206),
+  ),
+  'lifer': ArchetypeTheme(
+    primary: Color(0xFF22D3EE),
+    secondary: Color(0xFFFFFFFF),
+    background: Color(0xFF04141A),
+  ),
+  'prolific': ArchetypeTheme(
+    primary: Color(0xFFF472B6),
+    secondary: Color(0xFFA78BFA),
+    background: Color(0xFF1A0A16),
+  ),
+  'comeback': ArchetypeTheme(
+    primary: Color(0xFFFB923C),
+    secondary: Color(0xFFFFFFFF),
+    background: Color(0xFF1A0E05),
+  ),
+  'journeyman': ArchetypeTheme(
+    primary: Color(0xFF60A5FA),
+    secondary: Color(0xFFFBBF24),
+    background: Color(0xFF0A0F1F),
+  ),
+  'rookie': ArchetypeTheme(
+    primary: Color(0xFF4ADE80),
+    secondary: Color(0xFFFFFFFF),
+    background: Color(0xFF04140A),
+  ),
+  'builder': ArchetypeTheme(
+    primary: Color(0xFF3B82F6),
+    secondary: Color(0xFFF59E0B),
+    background: Color(0xFF0A0F1F),
+  ),
 };
 
 const ArchetypeTheme _defaultTheme = ArchetypeTheme(

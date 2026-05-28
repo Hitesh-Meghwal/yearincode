@@ -45,7 +45,17 @@ Sign in with GitHub, pick a year, wait ~15 seconds, get a vertical animated reca
 
 Spotify Wrapped works because looking back at a year of your own behavior, packaged with personality, is genuinely fun to see — and irresistible to share. Developers have a year's worth of behavior sitting in `git log`, and nobody had built the Wrapped for it. So I did.
 
-Privacy-first by design: yearincode requests **read-only `public_repo` scope only**. We never touch your code, never read private repos, never write anything. Everything you see in the player is derived from public commit metadata (timestamps, additions/deletions, message subject lines). The full data inventory is in [the privacy policy](https://yearincode.com/privacy) and verifiable by reading [`apps/web/lib/github/`](apps/web/lib/github/) — that's the entire surface that talks to GitHub.
+Privacy-first by design: the default path never asks you to log in, and even the signed-in path requests **read-only `public_repo` scope only**. We never read your source code, never write anything, and never store a pasted token. Everything in the player is derived from public commit metadata (timestamps, additions/deletions, message subject lines). The full data inventory is in [the privacy policy](https://yearincode.com/privacy) and verifiable by reading [`apps/web/lib/github/`](apps/web/lib/github/) — that's the entire surface that talks to GitHub.
+
+### Three ways to generate
+
+| Mode | How | What it reads | Owns the wrap? |
+|---|---|---|---|
+| **Username** (default, no login) | Type any GitHub handle | that account's PUBLIC data (via a server app token) | no — unclaimed, claimable later |
+| **Sign in with GitHub** | OAuth, `public_repo` scope | public data + private contribution _counts_ (if your profile opts in) | yes (`user_id` set) |
+| **Personal access token** | Paste a token (optional) | your private repos too, read-only; **used once, never stored** | no — unclaimed |
+
+Private repos (token mode) only ever feed the **aggregate totals** — a private repo's name, commit messages, and code never appear on the public page.
 
 ---
 
@@ -53,10 +63,14 @@ Privacy-first by design: yearincode requests **read-only `public_repo` scope onl
 
 | Feature | Where |
 |---|---|
-| GitHub OAuth via Supabase (read-only `public_repo` scope) | `/` (Sign in button) |
-| Year picker — every year since you joined GitHub, regenerate option | `/generate` |
+| No-login username generation (the viral entry) | `/` (type a handle, hit Wrap) |
+| GitHub OAuth via Supabase (read-only `public_repo`) to claim + enrich a wrap | `/` (Sign in) |
+| Optional pasted PAT for private-repo totals (used once, never stored) | `/` (include private repos) |
+| **"Since Day One" all-time wrap** — your whole GitHub career, lifetime totals | `/u/{username}/all` (year sentinel `0`) |
+| Per-IP rate limiting on the no-login path | `lib/rateLimit.ts` |
+| Year picker — every year since you joined GitHub + all-time, regenerate | `/generate` |
 | Animated Flutter wasm player — 11 slides, ~55 seconds, synthwave loop | `/u/{username}/{year}` |
-| 15-archetype rules engine (the "vibe check"), themed per archetype | computed server-side |
+| **Two archetype engines**: 15 yearly (behavior pattern) + 9 lifetime (tenure + scale) | computed server-side |
 | Discipline score 0–100 (consistency × streak × volume × balance) | shown on slide 8 |
 | Devicon SVG tiles for top languages (79 supported), Twemoji archetypes | Languages + Archetype slides |
 | Boldonse display font for hero numbers, DepartureMono CRT font for labels | every slide |
@@ -66,11 +80,10 @@ Privacy-first by design: yearincode requests **read-only `public_repo` scope onl
 | Web Share + X / LinkedIn / Reddit / copy-link | revealed after the player ends |
 | `/me` dashboard — all your wrappeds, views, created date, regenerate, delete | `/me` |
 | Tiered landing social-proof strip (adapts copy as numbers grow) | `/` |
-| Marquee deck of all 15 archetypes (pause-on-hover, no clip) | `/` |
+| Marquee deck of all 23 archetypes (15 yearly + 8 lifetime unlocks) | `/` |
 | Privacy + Terms pages | `/privacy`, `/terms` |
 | Full SEO stack: root + per-page metadata, JSON-LD, sitemap, robots, GSC verified | route conventions |
-| PWA manifest (installable on Android/iOS/desktop) | `/manifest.webmanifest` |
-| Full favicon set (ICO, PNG, SVG, Apple touch) | served from `apps/web/app/` |
+| Web manifest + full favicon set (ICO, PNG, SVG, Apple touch) | `apps/web/app/` |
 | `prefers-reduced-motion` respected | CSS + Flutter |
 
 ---
@@ -217,7 +230,10 @@ SUPABASE_SERVICE_ROLE_KEY=       # Supabase → Project Settings → API → ser
 GITHUB_CLIENT_ID=                # From the GitHub OAuth app
 GITHUB_CLIENT_SECRET=            # From the GitHub OAuth app
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+GITHUB_APP_TOKEN=                # Read-only PAT for no-login USERNAME mode (see below)
 ```
+
+`GITHUB_APP_TOKEN` powers the no-login username path: when a visitor types a handle without signing in, the server reads that account's PUBLIC data with this token. Create a **classic PAT with NO scopes ticked** at github.com/settings/tokens (zero-scope = read public data only, 5,000 req/hr, no write access). Without it, username mode returns `app_token_missing`. It's not needed for the signed-in or pasted-token paths.
 
 ### 5. Build the Flutter player
 
@@ -249,7 +265,9 @@ Opens at <http://localhost:3000>. Sign in with GitHub → land on the year picke
 
 ## How it works (the full flow)
 
-### 1. Auth
+### 1. Auth (optional)
+
+Auth is **not required** to generate a wrap — username mode is the default no-login path. Signing in just claims the wrap as yours and adds private contribution counts.
 
 `SignInButton` calls `supabase.auth.signInWithOAuth({ provider: "github", redirectTo: '<site>/auth/callback?next=/generate', scopes: 'read:user user:email read:org public_repo' })`. The `public_repo` scope is intentional — the original `repo` scope made the consent screen read "this app wants to write to all your private code", which scared off prospective users. `public_repo` is read-only on public repos and unlocks the same per-language / per-repo data we need for the aggregation.
 
@@ -267,20 +285,21 @@ Clicking **Generate** navigates to `/generate?year=YYYY`, which:
 
 ### 3. Generation
 
-`GenerateClient` POSTs `/api/generate` with `{ year, force? }` in the body and shows rotating loading copy while it waits. The route:
+`POST /api/generate` accepts a body of `{ year?, username?, token?, allTime? }` and resolves one of **three modes**:
 
-1. Reads the authenticated user via cookies, then reads the GitHub access token from `user_github_tokens` using a service-role client. If no row exists, returns `missing_github_token` and the UI offers a "Sign out & sign in →" action to trigger a fresh capture in `/auth/callback`.
-2. Computes the calendar date range for that year (Jan 1 → Dec 31, or → today if current year).
-3. Calls `lib/github/fetchCommits`:
-   - GraphQL `contributionsCollection` for repo list + commit counts + language sizes.
-   - Per repo, paginated `history(author: { id: ... })` for commit metadata + additions/deletions.
-   - Max 5 repos in parallel; max 30 pages × 100 commits per repo.
-4. Calls `lib/aggregator`: totals, streaks, time patterns, top languages/repos/collaborators, message stats, **discipline score** (`0.40 × consistency + 0.30 × streak + 0.20 × volume + 0.10 × balance`).
-5. Calls `lib/archetypes`: 15 rules evaluated in priority order, first match wins.
-6. Upserts the row into `wrapped_reports` (unique on `github_username + year`).
-7. Returns `{ redirectUrl: '/u/{username}/{year}' }`.
+- **authenticated** (no `username`/`token` in body): reads the signed-in user's stored token from `user_github_tokens` via the service-role client. If no row exists, returns `missing_github_token` and the UI offers "Sign out & sign in →". Row is owned (`user_id` set), written through RLS.
+- **username** (`{ username }`, no auth): fetches that handle's PUBLIC data with `GITHUB_APP_TOKEN`. Row is unclaimed (`user_id = null`), written via service role. Rate-limited per IP.
+- **pat** (`{ token }`): uses the pasted token once (never stored) to read the token owner's own data, private repos included. Row is unclaimed.
 
-If commit count is 0 for the requested year (user wasn't active that year), returns `error: 'no_commits'` and the picker shows a friendly message.
+The no-auth modes are **rate-limited** (`lib/rateLimit.ts`, default 8 req / 10 min per IP) and protected by an **ownership guard** — an anonymous request never overwrites a wrap a signed-in user has claimed.
+
+The fetch + aggregate pipeline (`lib/github/fetchCommits` → `lib/aggregator`):
+- GraphQL `contributionsCollection` (viewer or by-login) for repo list + commit counts + language sizes; per-repo paginated `history(author:{id})` for commit metadata + additions/deletions. Max 5 repos in parallel, 30 pages × 100 commits per repo.
+- Aggregates totals, streaks, time patterns, top languages/repos/collaborators, message stats, and the **discipline score** (`0.40 × consistency + 0.30 × streak + 0.20 × volume + 0.10 × balance`).
+- **Yearly**: `lib/archetypes` runs the 15-rule yearly engine (first match wins). Stores under the calendar year.
+- **All-time** (`year: "all"` / `allTime`): `fetchWrappedDataAllTime` loops year-by-year from the account's join date → now (GitHub caps the contributions connection at a 1-year span), merges into lifetime totals, and `lib/archetypesLifetime` runs the **9-rule lifetime engine** (tenure + scale: Architect → OG → Veteran → Lifer → Prolific → Comeback → Journeyman → Rookie → Builder). Stored under the sentinel `year = 0`; share URL is `/u/{username}/all`.
+
+Upserts into `wrapped_reports` (unique on `github_username + year`). 0-commit results return `error: 'no_commits'`.
 
 ### 4. Share page
 

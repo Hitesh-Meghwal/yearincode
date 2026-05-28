@@ -36,7 +36,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
 
     const wrappedPages: MetadataRoute.Sitemap = (data ?? []).map((row) => ({
-      url: `${base}/u/${encodeURIComponent(row.github_username)}/${row.year}`,
+      // year 0 is the all-time sentinel; its canonical slug is /all, not /0.
+      url: `${base}/u/${encodeURIComponent(row.github_username)}/${
+        row.year === 0 ? "all" : row.year
+      }`,
       lastModified: row.updated_at ? new Date(row.updated_at) : now,
       changeFrequency: "monthly" as const,
       priority: 0.6,

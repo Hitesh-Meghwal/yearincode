@@ -34,10 +34,31 @@ export default async function GeneratePage({
 
   const params = await searchParams;
   const currentYear = new Date().getUTCFullYear();
+  const force = params.force === "1";
+
+  // ---- Branch A0: the all-time ("Since Day One") wrap. Stored under the
+  // sentinel year 0; the public URL uses the `/all` slug. Mirrors the numeric
+  // branch below but lets the API do the year:"all" fetch.
+  if (params.year === "all") {
+    if (!force) {
+      const { data: existing } = await supabase
+        .from("wrapped_reports")
+        .select("id")
+        .eq("github_username", githubLogin)
+        .eq("year", 0)
+        .maybeSingle();
+
+      if (existing) {
+        redirect(`/u/${githubLogin}/all`);
+      }
+    }
+
+    return <GenerateClient year="all" />;
+  }
+
   const requestedYear = params.year
     ? Number.parseInt(params.year, 10)
     : null;
-  const force = params.force === "1";
 
   // ---- Branch A: a specific year was requested.
   if (requestedYear !== null && Number.isFinite(requestedYear)) {
@@ -74,13 +95,13 @@ export default async function GeneratePage({
     years.push(y);
   }
 
-  // Fetch existing wrappeds for this user across the visible years so we can
-  // mark each row as "view" vs "generate".
+  // Fetch existing wrappeds for this user across the visible years AND the
+  // all-time sentinel (year 0) so we can mark each row as "view" vs "generate".
   const { data: ownedRows } = await supabase
     .from("wrapped_reports")
     .select("year, view_count")
     .eq("user_id", user.id)
-    .in("year", years);
+    .in("year", [0, ...years]);
 
   const ownedByYear = new Map<number, { viewCount: number }>(
     (ownedRows ?? []).map((row) => [row.year as number, { viewCount: (row.view_count ?? 0) as number }]),
@@ -97,6 +118,7 @@ export default async function GeneratePage({
       username={githubLogin}
       items={items}
       joinYear={joinYear ?? null}
+      allTimeOwned={ownedByYear.get(0) ?? null}
     />
   );
 }

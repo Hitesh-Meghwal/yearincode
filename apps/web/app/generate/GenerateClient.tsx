@@ -23,7 +23,8 @@ type ErrorPayload = {
 };
 
 type Props = {
-  year: number;
+  // A numeric calendar year, or "all" for the all-time ("Since Day One") wrap.
+  year: number | "all";
 };
 
 export default function GenerateClient({ year }: Props) {
@@ -160,7 +161,7 @@ export default function GenerateClient({ year }: Props) {
 
       <div className="w-full max-w-md text-center space-y-8">
         <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-emerald-300">
-          cooking your {year} wrapped
+          cooking your {year === "all" ? "all-time" : year} wrapped
         </p>
 
         <div className="mx-auto h-12 w-12 rounded-full border-2 border-neutral-700 border-t-white animate-spin" />

@@ -8,6 +8,8 @@ export const VIEWER_QUERY = /* GraphQL */ `
       login
       avatarUrl
       databaseId
+      id
+      createdAt
     }
   }
 `;
@@ -17,7 +19,90 @@ export type ViewerResponse = {
     login: string;
     avatarUrl: string;
     databaseId: number;
+    id: string;
+    createdAt: string;
   };
+};
+
+// Resolve a public profile by username. Used by username mode (no auth): we
+// look up the target user with an app-level token, then query their PUBLIC
+// contributions. Returns null-ish if the login doesn't exist.
+export const USER_QUERY = /* GraphQL */ `
+  query UserByLogin($login: String!) {
+    user(login: $login) {
+      login
+      avatarUrl
+      databaseId
+      id
+      createdAt
+    }
+  }
+`;
+
+export type UserResponse = {
+  user: {
+    login: string;
+    avatarUrl: string;
+    databaseId: number;
+    id: string;
+    createdAt: string;
+  } | null;
+};
+
+// Contribution summary for a SPECIFIC user (by login), as opposed to the
+// token's own viewer. Same shape as CONTRIBUTIONS_QUERY. With an app-level
+// token this only ever returns the user's PUBLIC repositories + public
+// contribution data.
+export const CONTRIBUTIONS_BY_USER_QUERY = /* GraphQL */ `
+  query ContributionsByUser($login: String!, $from: DateTime!, $to: DateTime!) {
+    user(login: $login) {
+      contributionsCollection(from: $from, to: $to) {
+        totalCommitContributions
+        commitContributionsByRepository(maxRepositories: 100) {
+          contributions(first: 1) {
+            totalCount
+          }
+          repository {
+            nameWithOwner
+            isPrivate
+            primaryLanguage {
+              name
+            }
+            languages(first: 10, orderBy: { field: SIZE, direction: DESC }) {
+              edges {
+                size
+                node {
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+export type ContributionsByUserResponse = {
+  user: {
+    contributionsCollection: {
+      totalCommitContributions: number;
+      commitContributionsByRepository: Array<{
+        contributions: { totalCount: number };
+        repository: {
+          nameWithOwner: string;
+          isPrivate: boolean;
+          primaryLanguage: { name: string } | null;
+          languages: {
+            edges: Array<{
+              size: number;
+              node: { name: string };
+            }>;
+          };
+        };
+      }>;
+    };
+  } | null;
 };
 
 // Fetch the user's contribution summary across the given window. The

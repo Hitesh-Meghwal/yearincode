@@ -29,6 +29,15 @@ const ARCHETYPES: Archetype[] = [
   { emoji: "🐺", name: "The Lone Wolf",             trigger: "Zero co-committers all year.", rarity: "common" },
   { emoji: "✈️", name: "The Globe Trotter",         trigger: "Commits scattered across so many hours, your timezone is anywhere.", rarity: "legendary" },
   { emoji: "🔨", name: "The Builder",               trigger: "Heads down, shipping. No single pattern dominated.", rarity: "common" },
+  // Lifetime archetypes — only unlockable via the all-time "Since Day One" wrap.
+  { emoji: "🏛️", name: "The Architect",             trigger: "All-time: 10,000+ commits across your career.", rarity: "legendary" },
+  { emoji: "🧬", name: "The OG",                     trigger: "All-time: on GitHub since before 2013, still shipping.", rarity: "legendary" },
+  { emoji: "🎖️", name: "The Veteran",               trigger: "All-time: 8+ years deep, still in the trenches.", rarity: "rare" },
+  { emoji: "♾️", name: "The Lifer",                 trigger: "All-time: a commit every single year since you joined.", rarity: "rare" },
+  { emoji: "🚀", name: "The Prolific",              trigger: "All-time: 5,000+ commits over your lifetime.", rarity: "rare" },
+  { emoji: "🔁", name: "The Comeback",              trigger: "All-time: went quiet, then came back swinging.", rarity: "uncommon" },
+  { emoji: "🧭", name: "The Journeyman",            trigger: "All-time: a few solid years on the board.", rarity: "uncommon" },
+  { emoji: "🌱", name: "The Rookie",                trigger: "All-time: fresh on GitHub, already shipping.", rarity: "common" },
 ];
 
 const RARITY_ACCENT: Record<Rarity, { dot: string; label: string }> = {
@@ -63,7 +72,8 @@ export default function ArchetypeShowcase() {
             </h2>
             <p className="mt-5 text-lg text-neutral-400 leading-relaxed">
               A rules engine grades your year into one of fifteen archetypes,
-              from common to legendary. Hover to pause the deck.
+              from common to legendary. Run the all-time wrap and you can unlock
+              eight more that only a whole career reveals. Hover to pause the deck.
             </p>
           </header>
         </div>

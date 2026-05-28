@@ -34,6 +34,14 @@ class WrappedStats {
   final CommitMessageMarker shortestCommitMessage;
   final CommitMessageCounts totalCommitMessages;
 
+  /// All-time ("Since Day One") wrap context. Absent on yearly wraps, so the
+  /// player must treat these as optional and default to the yearly framing.
+  final bool isAllTime;
+  final int? accountCreatedYear;
+  final int? yearsActive;
+  final int? firstActiveYear;
+  final int? lastActiveYear;
+
   const WrappedStats({
     required this.username,
     required this.avatarUrl,
@@ -59,6 +67,11 @@ class WrappedStats {
     required this.longestCommitMessage,
     required this.shortestCommitMessage,
     required this.totalCommitMessages,
+    this.isAllTime = false,
+    this.accountCreatedYear,
+    this.yearsActive,
+    this.firstActiveYear,
+    this.lastActiveYear,
   });
 
   factory WrappedStats.fromJson(Map<String, dynamic> json) {
@@ -100,6 +113,12 @@ class WrappedStats {
           (json['shortestCommitMessage'] as Map?)?.cast<String, dynamic>() ?? {}),
       totalCommitMessages: CommitMessageCounts.fromJson(
           (json['totalCommitMessages'] as Map?)?.cast<String, dynamic>() ?? {}),
+      // All-time fields are absent on yearly wraps; default to the yearly framing.
+      isAllTime: (json['isAllTime'] as bool?) ?? false,
+      accountCreatedYear: (json['accountCreatedYear'] as num?)?.toInt(),
+      yearsActive: (json['yearsActive'] as num?)?.toInt(),
+      firstActiveYear: (json['firstActiveYear'] as num?)?.toInt(),
+      lastActiveYear: (json['lastActiveYear'] as num?)?.toInt(),
     );
   }
 }

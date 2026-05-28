@@ -90,9 +90,10 @@ class CommitsSlide extends StatelessWidget {
                 const SizedBox(height: 18),
                 FadeIn(
                   delay: const Duration(milliseconds: 350),
-                  child: const Text(
-                    'commits this year',
-                    style: TextStyle(
+                  // "this year" is wrong for lifetime wraps — say "all-time".
+                  child: Text(
+                    stats.isAllTime ? 'commits all-time' : 'commits this year',
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 26,
                       fontWeight: FontWeight.w800,
@@ -105,7 +106,7 @@ class CommitsSlide extends StatelessWidget {
                 FadeIn(
                   delay: const Duration(milliseconds: 500),
                   child: Text(
-                    'across ${stats.totalRepos} repos  ·  ${stats.totalActiveDays} active days',
+                    _subCaption(stats),
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.7),
                       fontSize: 14,
@@ -134,6 +135,19 @@ class CommitsSlide extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Sub-caption beneath the hero number. For all-time wraps we add a
+/// "N years on GitHub" detail when the span is known — it earns its place
+/// because lifetime totals only mean something against the elapsed time.
+String _subCaption(WrappedStats stats) {
+  final base =
+      'across ${stats.totalRepos} repos  ·  ${stats.totalActiveDays} active days';
+  final years = stats.yearsActive;
+  if (stats.isAllTime && years != null && years > 0) {
+    return '$base  ·  $years ${years == 1 ? 'year' : 'years'} on GitHub';
+  }
+  return base;
 }
 
 /// Deterministic 52-square activity row. Lit positions chosen via a seeded

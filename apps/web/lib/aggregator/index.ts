@@ -1,4 +1,5 @@
 import { detectArchetype } from "../archetypes";
+import { detectLifetimeArchetype } from "../archetypesLifetime";
 import type {
   CommitMessageMarker,
   FetchResult,
@@ -174,4 +175,46 @@ export function aggregateWrappedStats(
     shortestCommitMessage: messageStats.shortestCommitMessage,
     totalCommitMessages: messageStats.totalCommitMessages,
   };
+}
+
+/**
+ * All-time ("Since Day One") aggregation. Reuses the yearly aggregator over the
+ * full join-date → now span for every numeric stat, then overrides the
+ * year-specific bits: the sentinel `year = 0`, the lifetime metadata, and the
+ * archetype (drawn from the tenure-aware lifetime engine, not the yearly one).
+ */
+export function aggregateAllTimeStats(
+  fetch: FetchResult,
+  accountCreatedYear: number,
+  now: Date,
+): WrappedStats {
+  const stats = aggregateWrappedStats(fetch, {
+    from: new Date(Date.UTC(accountCreatedYear, 0, 1)),
+    to: now,
+  });
+
+  // Distinct calendar years (UTC) with >= 1 commit, ascending.
+  const activeYears = [
+    ...new Set(
+      fetch.userCommits.map((c) =>
+        new Date(c.committedDate).getUTCFullYear(),
+      ),
+    ),
+  ].sort((a, b) => a - b);
+
+  stats.year = 0;
+  stats.isAllTime = true;
+  stats.accountCreatedYear = accountCreatedYear;
+  stats.yearsActive = activeYears.length;
+  stats.firstActiveYear = activeYears[0];
+  stats.lastActiveYear = activeYears[activeYears.length - 1];
+
+  stats.archetype = detectLifetimeArchetype({
+    totalCommits: stats.totalCommits,
+    accountCreatedYear,
+    currentYear: now.getUTCFullYear(),
+    activeYears,
+  });
+
+  return stats;
 }

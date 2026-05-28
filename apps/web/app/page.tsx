@@ -6,6 +6,7 @@ import SignOutLink from "./SignOutLink";
 import SampleEmbed from "./SampleEmbed";
 import ArchetypeShowcase from "./ArchetypeShowcase";
 import ContributionGridBg from "./ContributionGridBg";
+import GenerateForm from "./GenerateForm";
 
 // The "see an example" sample on the landing uses a synthetic wrapped (NOT
 // tied to any real GitHub user). Three reasons:
@@ -130,7 +131,7 @@ export default async function LandingPage({
       {/* Hero */}
       <section className="px-6 pt-10 pb-16 sm:pt-16 sm:pb-24">
         <div className="mx-auto max-w-5xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-md border border-neutral-800 bg-neutral-950/70 px-3 py-1.5 mb-6 font-mono text-[12px] sm:text-[13px] text-neutral-400 backdrop-blur-sm">
+          <div className="rise inline-flex items-center gap-2 rounded-md border border-neutral-800 bg-neutral-950/70 px-3 py-1.5 mb-7 font-mono text-[12px] sm:text-[13px] text-neutral-400 backdrop-blur-sm" style={{ animationDelay: "0ms" }}>
             <span className="text-emerald-400">$</span>
             <span>yearincode</span>
             <span className="text-neutral-600">--user</span>
@@ -139,21 +140,17 @@ export default async function LandingPage({
             </span>
             <span className="inline-block h-3.5 w-[2px] bg-neutral-300 animate-pulse" />
           </div>
-          <h1 className="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight leading-[0.95]">
-            Your{" "}
-            <span className="bg-gradient-to-br from-emerald-300 via-pink-400 to-violet-400 bg-clip-text text-transparent">
-              year in code
-            </span>
-            ,{" "}
-            <br className="hidden sm:block" />
-            wrapped.
+          <h1 className="rise text-5xl sm:text-7xl lg:text-[5.5rem] font-black tracking-[-0.04em] leading-[0.92]" style={{ animationDelay: "80ms" }}>
+            Your year in code,
+            <br />
+            <span className="text-pink-400">wrapped.</span>
           </h1>
-          <p className="mt-6 text-lg sm:text-xl text-neutral-300 max-w-2xl mx-auto">
-            Sign in with GitHub. 15 seconds later, get a beautiful animated
-            recap of your year: commits, languages, peak hours, your archetype.
+          <p className="rise mt-7 text-lg sm:text-xl text-neutral-400 max-w-xl mx-auto leading-relaxed" style={{ animationDelay: "160ms" }}>
+            Type any GitHub username. Fifteen seconds later: an animated recap of
+            that year. Commits, languages, peak hours, your archetype.
           </p>
 
-          <div className="mt-8 flex flex-col items-center gap-3">
+          <div className="rise mt-9 flex flex-col items-center gap-3" style={{ animationDelay: "240ms" }}>
             {user ? (
               <Link
                 href="/generate"
@@ -162,13 +159,25 @@ export default async function LandingPage({
                 {githubLogin ? "View your wrapped →" : "Continue →"}
               </Link>
             ) : (
-              <SignInButton />
+              <>
+                <GenerateForm />
+                <div className="flex items-center gap-3 mt-1 text-xs text-neutral-600">
+                  <span className="h-px w-8 bg-neutral-800" />
+                  <span className="font-mono">or</span>
+                  <span className="h-px w-8 bg-neutral-800" />
+                </div>
+                <SignInButton />
+                <p className="text-xs text-neutral-500 max-w-sm">
+                  Sign in to claim your wrap as yours and include your private
+                  contribution counts.
+                </p>
+              </>
             )}
             {params?.error ? (
               <p className="text-red-400 text-sm">{params.error}</p>
             ) : null}
             <p className="text-xs text-neutral-500">
-              free · read-only public-repo access · we never see your code, only commit metadata
+              free · we never read or store your source code, only commit metadata
             </p>
             <p className="font-mono text-[12px] text-neutral-400 mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />

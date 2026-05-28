@@ -72,9 +72,13 @@ class IntroSlide extends StatelessWidget {
                   FadeIn(
                     delay: const Duration(milliseconds: 500),
                     slideFrom: const Offset(-0.04, 0.04),
-                    child: const Text(
-                      "Here's how\nyou shipped.",
-                      style: TextStyle(
+                    // All-time wraps span the whole account, so frame it as the
+                    // full journey rather than a single year.
+                    child: Text(
+                      stats.isAllTime
+                          ? "Here's everything\nsince day one."
+                          : "Here's how\nyou shipped.",
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 60,
                         fontWeight: FontWeight.w400,
