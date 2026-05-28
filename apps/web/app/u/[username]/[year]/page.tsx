@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import SharePageClient from "@/components/SharePageClient";
@@ -174,6 +175,19 @@ export default async function SharePage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className="mx-auto w-full max-w-2xl space-y-10">
+        {/* In-page back link: most visitors arrive from a shared link, so
+            browser-back would leave the site entirely. This is a plain row
+            above the centered content — it doesn't affect the player's
+            centering below. */}
+        <nav>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-sm text-neutral-400 transition-colors hover:text-white"
+          >
+            <span aria-hidden>←</span> yearincode
+          </Link>
+        </nav>
+
         <header className="flex items-center gap-4">
           {stats.avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
