@@ -22,7 +22,7 @@ function friendlyError(code: string | undefined, status: number): string {
     case "invalid_username":
       return "That doesn't look like a GitHub username.";
     case "invalid_token_format":
-      return "That token should start with ghp_ or github_pat_.";
+      return "That doesn't look like a GitHub token — it should start with ghp_ or github_pat_.";
     case "no_commits":
       return "No public commits found for that year. Try another year.";
     case "rate_limited":
@@ -30,13 +30,20 @@ function friendlyError(code: string | undefined, status: number): string {
     case "app_token_missing":
       return "Username mode isn't configured on the server yet.";
     case "github_api_error":
-      return status === 404
-        ? "No GitHub user by that name."
-        : "GitHub had a hiccup. Try again in a moment.";
+      if (status === 404) return "No GitHub user by that name.";
+      // 401 = GitHub rejected the token (wrong, revoked, or expired).
+      if (status === 401) {
+        return "GitHub rejected that token. Check it's valid, not expired, and has the right scopes.";
+      }
+      return "GitHub had a hiccup. Try again in a moment.";
     default:
       return "Something went wrong. Try again.";
   }
 }
+
+// Client-side token sanity check — mirrors the server regex so we can reject
+// an obviously-bad paste instantly, before spending a round-trip.
+const TOKEN_RE = /^(gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})$/;
 
 // "all" is the all-time ("Since Day One") sentinel; everything else is a
 // numeric calendar year. Kept as a string in state so the <select> round-trips
@@ -87,6 +94,16 @@ export default function GenerateForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
+
+    // Instant client-side guards so an obviously-bad paste never costs a
+    // round-trip and gets a precise message right away.
+    const tokenValue = token.trim();
+    if (tokenValue && !TOKEN_RE.test(tokenValue)) {
+      setShowToken(true);
+      setError(friendlyError("invalid_token_format", 400));
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
@@ -98,18 +115,21 @@ export default function GenerateForm() {
           // Sends the numeric year, or the literal string "all" for the
           // all-time ("Since Day One") wrap.
           year,
-          token: token.trim() || undefined,
+          token: tokenValue || undefined,
         }),
       });
       const data = (await res.json().catch(() => ({}))) as {
         redirectUrl?: string;
         error?: string;
+        detail?: string;
       };
       if (res.ok && data.redirectUrl) {
         router.push(data.redirectUrl);
         return; // keep the spinner up through navigation
       }
-      setError(friendlyError(data.error, res.status));
+      // Parse-level rejections come back as { error: "invalid_request",
+      // detail: "<specific>" }, so prefer detail for the precise message.
+      setError(friendlyError(data.detail ?? data.error, res.status));
     } catch {
       setError("Network error. Check your connection and try again.");
     }
@@ -219,37 +239,49 @@ export default function GenerateForm() {
         </button>
       </div>
 
-      {showToken ? (
-        <div className="mt-2 rounded-xl border border-neutral-800 bg-neutral-950/70 p-3.5">
-          <div className="flex items-center gap-2 rounded-lg border border-neutral-800 bg-black/40 px-3 py-2.5">
-            <span className="select-none font-mono text-sm text-neutral-600">
-              🔑
-            </span>
-            <input
-              type="password"
-              placeholder="ghp_xxxxxxxxxxxx"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              disabled={loading}
-              className="min-w-0 flex-1 bg-transparent font-mono text-sm text-neutral-100 placeholder:text-neutral-700 focus:outline-none disabled:opacity-50"
-              aria-label="GitHub personal access token"
-            />
+      {/* Animated reveal via the grid-rows 0fr→1fr trick (no JS height
+          measuring; transitions cleanly even with `height: auto` content).
+          The inner wrapper clips during the transition. */}
+      <div
+        className={`grid transition-all duration-300 ease-out ${
+          showToken
+            ? "mt-2 grid-rows-[1fr] opacity-100"
+            : "mt-0 grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div className="rounded-xl border border-neutral-800 bg-neutral-950/70 p-3.5">
+            <div className="flex items-center gap-2 rounded-lg border border-neutral-800 bg-black/40 px-3 py-2.5">
+              <span className="select-none font-mono text-sm text-neutral-600">
+                🔑
+              </span>
+              <input
+                type="password"
+                placeholder="ghp_xxxxxxxxxxxx"
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                disabled={loading}
+                tabIndex={showToken ? 0 : -1}
+                className="min-w-0 flex-1 bg-transparent font-mono text-sm text-neutral-100 placeholder:text-neutral-700 focus:outline-none disabled:opacity-50"
+                aria-label="GitHub personal access token"
+              />
+            </div>
+            <p className="mt-2.5 text-[11px] leading-relaxed text-neutral-500">
+              <span className="text-neutral-400">🔒 Used once, then discarded.</span>{" "}
+              Never stored. Private repos only ever add to the totals, never
+              names or messages. Make a read-only one →{" "}
+              <a
+                href="https://github.com/settings/tokens?type=beta"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-emerald-300 hover:underline"
+              >
+                create token
+              </a>
+            </p>
           </div>
-          <p className="mt-2.5 text-[11px] leading-relaxed text-neutral-500">
-            <span className="text-neutral-400">🔒 Used once, then discarded.</span>{" "}
-            Never stored. Private repos only ever add to the totals, never names
-            or messages. Make a read-only one →{" "}
-            <a
-              href="https://github.com/settings/tokens?type=beta"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-emerald-300 hover:underline"
-            >
-              create token
-            </a>
-          </p>
         </div>
-      ) : null}
+      </div>
 
       {error ? (
         <p className="mt-3 text-center text-sm text-red-400">{error}</p>
