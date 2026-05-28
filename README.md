@@ -33,10 +33,11 @@ Sign in with GitHub, pick a year, wait ~15 seconds, get a vertical animated reca
 - [Prerequisites](#prerequisites)
 - [Local setup](#local-setup)
 - [How it works (the full flow)](#how-it-works-the-full-flow)
-- [Deploying to Vercel](#deploying-to-vercel)
+- [Deployment](#deployment)
 - [Common gotchas](#common-gotchas)
 - [Contributing](#contributing)
 - [Security](#security)
+- [Acknowledgements](#acknowledgements)
 - [License](#license)
 
 ---
@@ -432,21 +433,21 @@ The two highest-value security surfaces to scrutinize are:
 
 Built on the shoulders of:
 
-- [Next.js](https://nextjs.org) + [Vercel](https://vercel.com) (hosting + edge OG)
-- [Flutter](https://flutter.dev) (Web wasm renderer for the slide player)
-- [Supabase](https://supabase.com) (Postgres + Auth + RLS)
-- [Devicon](https://devicon.dev) — open-source language logos (the Languages slide tiles)
-- [VS Code Codicons](https://microsoft.github.io/vscode-codicons) — the decorative codicon layer
-- [Twemoji](https://github.com/jdecked/twemoji) — cross-platform color emoji parity
-- [Boldonse](https://fonts.google.com/specimen/Boldonse) (Google Fonts) — the giant display numbers
-- [Departure Mono](https://departuremono.com) — the retro-CRT mono used on every kicker + wordmark
-- [Pixabay](https://pixabay.com/music/) — synthwave loop on the player
+- ▲ &nbsp;[Next.js](https://nextjs.org) + [Vercel](https://vercel.com) — framework, hosting, edge OG
+- 💙 &nbsp;[Flutter](https://flutter.dev) — Web wasm renderer for the slide player
+- ⚡ &nbsp;[Supabase](https://supabase.com) — Postgres + Auth + RLS
+- 🏷️ &nbsp;[Devicon](https://devicon.dev) — open-source language logos (the Languages slide tiles)
+- 🔣 &nbsp;[VS Code Codicons](https://microsoft.github.io/vscode-codicons) — the decorative codicon layer
+- 😀 &nbsp;[Twemoji](https://github.com/jdecked/twemoji) — cross-platform color emoji parity
+- 🔠 &nbsp;[Boldonse](https://fonts.google.com/specimen/Boldonse) (Google Fonts) — the giant display numbers
+- 🖥️ &nbsp;[Departure Mono](https://departuremono.com) — the retro-CRT mono on every kicker + wordmark
+- 🎵 &nbsp;[Pixabay](https://pixabay.com/music/) — synthwave loop on the player
 
 ---
 
 ## License
 
-Released under the [MIT License](LICENSE). You're welcome to use, fork, study, and build on this code in your own projects. If it helps you, a link back to the repo or a mention is always appreciated — but never a requirement.
+Released under the [MIT License](LICENSE). You're welcome to use, fork, study, and build on this code in your own projects. If it helps you, a link back to the repo or a mention is always appreciated 💖— but never a requirement.
 
 ---
 
