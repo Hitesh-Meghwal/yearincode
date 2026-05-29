@@ -160,7 +160,8 @@ yearincode/
 │       ├── 0003_public_wrapped_stats_rpc.sql     aggregate counts for landing
 │       ├── 0004_user_github_tokens.sql           server-side GitHub OAuth token storage
 │       ├── 0005_public_wrapped_stats_add_devs.sql adds total_devs to the stats RPC
-│       └── 0006_add_github_created_at.sql        captures GitHub join date for the year picker
+│       ├── 0006_add_github_created_at.sql        captures GitHub join date for the year picker
+│       └── 0007_public_wrapped_stats_count_by_username.sql  counts devs by handle (incl. no-login)
 └── docs/
     └── BRANCH_PROTECTION.md        manual GitHub-UI checklist for protecting main
 ```
@@ -195,13 +196,14 @@ flutter pub get --directory=apps/player
 ### 2. Set up Supabase
 
 1. Create a new project at <https://supabase.com>.
-2. SQL Editor → run the six migrations **in order**:
+2. SQL Editor → run the seven migrations **in order**:
    - [`0001_initial_schema.sql`](supabase/migrations/0001_initial_schema.sql) — `wrapped_reports` table, indexes, RLS policies.
    - [`0002_view_count_rpc.sql`](supabase/migrations/0002_view_count_rpc.sql) — `increment_wrapped_view(p_username, p_year)` RPC for share-page view tracking.
    - [`0003_public_wrapped_stats_rpc.sql`](supabase/migrations/0003_public_wrapped_stats_rpc.sql) — `public_wrapped_stats()` RPC for the landing-page social-proof strip.
    - [`0004_user_github_tokens.sql`](supabase/migrations/0004_user_github_tokens.sql) — `user_github_tokens` table where `/auth/callback` persists each user's GitHub access token (service-role only, used by `/api/generate`). Without this, generation fails with `missing_github_token`.
    - [`0005_public_wrapped_stats_add_devs.sql`](supabase/migrations/0005_public_wrapped_stats_add_devs.sql) — extends the stats RPC with `total_devs` (distinct user count) so the landing strip can switch to "X devs have wrapped their year" once it scales.
    - [`0006_add_github_created_at.sql`](supabase/migrations/0006_add_github_created_at.sql) — adds the `github_created_at` column to `user_github_tokens`. `/auth/callback` captures `viewer.createdAt` from GitHub at sign-in and writes it here; the year picker uses it to render every year since the user joined GitHub instead of a hard-coded 5-year window. Without this migration, the auth-callback upsert fails with `column does not exist`.
+   - [`0007_public_wrapped_stats_count_by_username.sql`](supabase/migrations/0007_public_wrapped_stats_count_by_username.sql) — redefines the stats RPC's `total_devs` to `count(distinct github_username)` instead of `count(distinct user_id)`, so the landing's "devs wrapped" number counts no-login (username/PAT) wraps too, not just signed-in users.
 3. **Authentication → Providers → GitHub**: enable it. Copy the **callback URL** Supabase shows you, looks like `https://<project-ref>.supabase.co/auth/v1/callback`.
 4. **Authentication → URL Configuration**:
    - Site URL: `http://localhost:3000`
