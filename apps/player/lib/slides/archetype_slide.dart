@@ -3,9 +3,95 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../models/wrapped_stats.dart';
 import '../themes/archetype_themes.dart';
 import '../widgets/confetti_burst.dart';
+import '../widgets/motion.dart';
 import '../widgets/twemoji_image.dart';
 import '../themes/wrapped_palette.dart';
 import 'slide_scaffold.dart';
+
+/// Number of confetti particles per rarity tier — rarer reveals burst harder.
+int _confettiCountFor(String rarity) {
+  switch (rarity) {
+    case 'legendary':
+      return 160;
+    case 'rare':
+      return 120;
+    case 'uncommon':
+      return 90;
+    default:
+      return 70;
+  }
+}
+
+/// A soft, slowly-breathing radial glow placed behind the archetype emoji so
+/// the reveal feels lit from within. Honors reduced-motion by holding a
+/// static glow instead of pulsing.
+class _GlowHalo extends StatefulWidget {
+  final Color color;
+  const _GlowHalo({required this.color});
+  @override
+  State<_GlowHalo> createState() => _GlowHaloState();
+}
+
+class _GlowHaloState extends State<_GlowHalo>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c;
+  bool _started = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2400),
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (!reduceMotionOf(context)) _c.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Widget halo(double t) {
+      final alpha = 0.28 + 0.18 * t;
+      final scale = 0.9 + 0.12 * t;
+      return Transform.scale(
+        scale: scale,
+        child: Container(
+          width: 240,
+          height: 240,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [
+                widget.color.withValues(alpha: alpha),
+                widget.color.withValues(alpha: 0.0),
+              ],
+              stops: const [0.0, 1.0],
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (reduceMotionOf(context)) return halo(0.5);
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (context, _) =>
+          halo(Curves.easeInOut.transform(_c.value)),
+    );
+  }
+}
 
 /// Wrapped Pattern C — headline / reveal. The archetype emoji is the
 /// centerpiece, with the archetype name as a big headline below.
@@ -65,13 +151,24 @@ class ArchetypeSlide extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // The emoji — Twemoji image so the visual matches the
-                  // landing-page archetype deck exactly.
+                  // landing-page archetype deck exactly. A pulsing themed glow
+                  // halo sits behind it so the reveal reads as an "unlock".
                   ScaleIn(
                     delay: const Duration(milliseconds: 200),
                     from: 0.5,
                     duration: const Duration(milliseconds: 900),
-                    child: GentlePulse(
-                      child: TwemojiImage(emoji: a.emoji, size: 150),
+                    child: SizedBox(
+                      width: 240,
+                      height: 240,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          _GlowHalo(color: theme.primary),
+                          GentlePulse(
+                            child: TwemojiImage(emoji: a.emoji, size: 150),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 22),
@@ -136,13 +233,14 @@ class ArchetypeSlide extends StatelessWidget {
             ),
           ),
 
-          // Confetti — overlays everything.
+          // Confetti — overlays everything. Rarer archetypes get a denser
+          // burst so a legendary reveal genuinely feels bigger than a common.
           Positioned.fill(
             child: IgnorePointer(
               child: ConfettiBurst(
                 colors: [theme.primary, theme.secondary, Colors.white],
                 delay: const Duration(milliseconds: 400),
-                particleCount: 80,
+                particleCount: _confettiCountFor(a.rarity),
                 duration: const Duration(milliseconds: 3600),
               ),
             ),
