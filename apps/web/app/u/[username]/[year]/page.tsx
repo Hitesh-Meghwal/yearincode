@@ -86,6 +86,28 @@ function fmtNumber(n: number): string {
   return new Intl.NumberFormat("en-US").format(n);
 }
 
+// A single metric tile for the share-page summary grid. Mirrors the landing
+// page's card tokens (rounded-2xl / border-neutral-800 / bg-neutral-950/60)
+// with a big mono number in an archetype-palette accent over a quiet label.
+function StatCard({
+  value,
+  label,
+  accent,
+}: {
+  value: string;
+  label: string;
+  accent: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-950/60 p-4 backdrop-blur-sm">
+      <div className={`font-mono text-2xl font-bold tracking-tight ${accent}`}>
+        {value}
+      </div>
+      <div className="mt-1 text-xs text-neutral-500">{label}</div>
+    </div>
+  );
+}
+
 function fmtPercent(n: number): string {
   return `${(n * 100).toFixed(1)}%`;
 }
@@ -215,80 +237,145 @@ export default async function SharePage({
           playerVersion={getPlayerVersion()}
         />
 
-        {/* Plain-text summary kept below the player as an accessibility +
-            no-JS fallback. PRD §5.5 calls for a screen-reader-friendly
-            structured summary. */}
-        <section className="space-y-6 pt-4 border-t border-neutral-900">
-          <h2 className="sr-only">Wrapped summary</h2>
+        {/* Branded stat summary below the player. Doubles as the
+            screen-reader-friendly + no-JS fallback (PRD §5.5) — every figure
+            is real text inside semantic cards, so it reads cleanly without
+            the Flutter deck. Styling mirrors the landing page's card tokens:
+            rounded-2xl / border-neutral-800 / bg-neutral-950/60 / backdrop-blur. */}
+        <section className="space-y-8 pt-6 border-t border-neutral-900">
+          <h2 className="text-xl font-bold tracking-tight">
+            {stats.isAllTime ? "Since day one" : `${stats.year} in numbers`}
+          </h2>
 
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold">Totals</h3>
-            <ul className="text-sm text-neutral-300 space-y-1">
-              <li>Commits: {fmtNumber(stats.totalCommits)}</li>
-              <li>Repos contributed to: {fmtNumber(stats.totalRepos)}</li>
-              <li>Active days: {fmtNumber(stats.totalActiveDays)}</li>
-              <li>Additions: +{fmtNumber(stats.totalAdditions)}</li>
-              <li>Deletions: -{fmtNumber(stats.totalDeletions)}</li>
-              <li>Net lines: {fmtNumber(stats.netLines)}</li>
-            </ul>
+          {/* Archetype — the hero card, full-width with a violet→pink accent
+              ring echoing the landing's pink/violet palette. */}
+          <div className="relative overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950/60 p-6 backdrop-blur-sm">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-gradient-to-br from-violet-500/20 to-pink-500/20 blur-3xl"
+            />
+            <div className="relative flex items-center gap-4">
+              <TwemojiImage
+                emoji={stats.archetype.emoji}
+                size={48}
+                alt={stats.archetype.name}
+              />
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-lg font-bold">{stats.archetype.name}</h3>
+                  <span className="rounded-full border border-neutral-700 bg-neutral-900/80 px-2 py-0.5 font-mono text-[11px] uppercase tracking-wide text-neutral-400">
+                    {stats.archetype.rarity}
+                  </span>
+                </div>
+                <p className="mt-1 text-sm leading-relaxed text-neutral-400">
+                  {stats.archetype.description}
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold">Time patterns</h3>
-            <ul className="text-sm text-neutral-300 space-y-1">
-              <li>
-                Peak hour: {stats.peakHour}:00 UTC ({fmtNumber(stats.peakHourCommits)} commits)
-              </li>
-              <li>Peak day: {DAY_NAMES[stats.peakDayOfWeek]}</li>
-              <li>Weekend ratio: {fmtPercent(stats.weekendRatio)}</li>
-              <li>
-                Longest streak: {stats.longestStreak.days} day(s)
-                {stats.longestStreak.from && stats.longestStreak.to ? (
-                  <> · {stats.longestStreak.from} → {stats.longestStreak.to}</>
-                ) : null}
-              </li>
-              {typeof stats.disciplineScore === "number" ? (
-                <li>
-                  Discipline score:{" "}
-                  <span className="text-neutral-100 font-semibold">
+          {/* Headline numbers as a responsive stat-card grid. */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <StatCard
+              value={fmtNumber(stats.totalCommits)}
+              label="commits"
+              accent="text-pink-300"
+            />
+            <StatCard
+              value={`${stats.longestStreak.days}d`}
+              label="longest streak"
+              accent="text-violet-300"
+            />
+            <StatCard
+              value={fmtNumber(stats.totalActiveDays)}
+              label="active days"
+              accent="text-emerald-300"
+            />
+            <StatCard
+              value={fmtNumber(stats.totalRepos)}
+              label="repos"
+              accent="text-pink-300"
+            />
+            <StatCard
+              value={`${stats.peakHour}:00`}
+              label="peak hour · UTC"
+              accent="text-violet-300"
+            />
+            <StatCard
+              value={DAY_NAMES[stats.peakDayOfWeek].slice(0, 3)}
+              label="busiest day"
+              accent="text-emerald-300"
+            />
+            <StatCard
+              value={`+${fmtNumber(stats.totalAdditions)}`}
+              label="lines added"
+              accent="text-emerald-300"
+            />
+            <StatCard
+              value={`-${fmtNumber(stats.totalDeletions)}`}
+              label="lines removed"
+              accent="text-pink-300"
+            />
+            <StatCard
+              value={fmtPercent(stats.weekendRatio)}
+              label="weekend ratio"
+              accent="text-violet-300"
+            />
+          </div>
+
+          {/* Discipline score — a labelled bar so the 0–100 reads at a glance. */}
+          {typeof stats.disciplineScore === "number" ? (
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-950/60 p-6 backdrop-blur-sm">
+              <div className="flex items-baseline justify-between">
+                <h3 className="text-sm font-medium text-neutral-400">
+                  Discipline score
+                </h3>
+                <p className="font-mono text-sm">
+                  <span className="text-lg font-bold text-white">
                     {stats.disciplineScore}
                   </span>
                   <span className="text-neutral-500"> / 100</span>
-                </li>
-              ) : null}
-            </ul>
-          </div>
+                </p>
+              </div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-neutral-800">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-violet-500 to-pink-500"
+                  style={{
+                    width: `${Math.max(0, Math.min(100, stats.disciplineScore))}%`,
+                  }}
+                />
+              </div>
+            </div>
+          ) : null}
 
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold">Archetype</h3>
-            <p className="flex items-center gap-2">
-              <TwemojiImage
-                emoji={stats.archetype.emoji}
-                size={24}
-                alt={stats.archetype.name}
-              />
-              <span>
-                {stats.archetype.name}{" "}
-                <span className="text-sm text-neutral-400">
-                  ({stats.archetype.rarity})
-                </span>
-              </span>
-            </p>
-            <p className="text-sm text-neutral-300">
-              {stats.archetype.description}
-            </p>
-          </div>
-
+          {/* Tech stack — language bars. */}
           {stats.topLanguages.length > 0 ? (
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Tech stack</h3>
-              <ol className="text-sm text-neutral-300 space-y-1 list-decimal list-inside">
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-950/60 p-6 backdrop-blur-sm">
+              <h3 className="text-sm font-medium text-neutral-400">
+                Top languages
+              </h3>
+              <ul className="mt-4 space-y-3">
                 {stats.topLanguages.map((l) => (
                   <li key={l.name}>
-                    {l.name} — {fmtNumber(l.commits)} commits ({l.percentage}%)
+                    <div className="flex items-baseline justify-between text-sm">
+                      <span className="font-medium text-neutral-200">
+                        {l.name}
+                      </span>
+                      <span className="font-mono text-xs text-neutral-500">
+                        {fmtNumber(l.commits)} · {l.percentage}%
+                      </span>
+                    </div>
+                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-neutral-800">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-pink-500 to-violet-500"
+                        style={{
+                          width: `${Math.max(2, Math.min(100, l.percentage))}%`,
+                        }}
+                      />
+                    </div>
                   </li>
                 ))}
-              </ol>
+              </ul>
             </div>
           ) : null}
 
@@ -298,15 +385,25 @@ export default async function SharePage({
               don't add value to viewers. */}
 
           {stats.topCollaborators.length > 0 ? (
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Top collaborators</h3>
-              <ol className="text-sm text-neutral-300 space-y-1 list-decimal list-inside">
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-950/60 p-6 backdrop-blur-sm">
+              <h3 className="text-sm font-medium text-neutral-400">
+                Top collaborators
+              </h3>
+              <ul className="mt-4 flex flex-wrap gap-2">
                 {stats.topCollaborators.map((c) => (
-                  <li key={c.username}>
-                    @{c.username} — {fmtNumber(c.sharedCommits)} shared commits
+                  <li
+                    key={c.username}
+                    className="inline-flex items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900/60 px-3 py-1.5 text-sm"
+                  >
+                    <span className="font-medium text-neutral-200">
+                      @{c.username}
+                    </span>
+                    <span className="font-mono text-xs text-neutral-500">
+                      {fmtNumber(c.sharedCommits)}
+                    </span>
                   </li>
                 ))}
-              </ol>
+              </ul>
             </div>
           ) : null}
         </section>
