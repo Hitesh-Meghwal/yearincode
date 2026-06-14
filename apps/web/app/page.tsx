@@ -212,7 +212,6 @@ export default async function LandingPage({
               <SocialProofCopy
                 totalWrappeds={totalWrappeds}
                 totalViews={totalViews}
-                totalDevs={totalDevs}
                 fmtCount={fmtCount}
               />
             </p>
@@ -313,17 +312,15 @@ function Feature({
  *
  *   tier 1   0 wrappeds:     "just launched · be the first to ship your wrapped"
  *   tier 2   1-9 wrappeds:   "{N} wrapped(s) shipped · be next →"
- *   tier 3   10+ wrappeds:   "{D} devs have wrapped their year · {V} plays"
+ *   tier 3   10+ wrappeds:   "{N} wrapped(s) shipped · {V} plays"
  */
 function SocialProofCopy({
   totalWrappeds,
   totalViews,
-  totalDevs,
   fmtCount,
 }: {
   totalWrappeds: number;
   totalViews: number;
-  totalDevs: number;
   fmtCount: (n: number) => string;
 }) {
   if (totalWrappeds === 0) {
@@ -353,9 +350,9 @@ function SocialProofCopy({
 
   return (
     <>
-      <span className="text-emerald-300">{fmtCount(totalDevs)}</span>
+      <span className="text-emerald-300">{fmtCount(totalWrappeds)}</span>
       <span className="text-neutral-600">
-        dev{totalDevs === 1 ? "" : "s"} wrapped their year
+        wrapped{totalWrappeds === 1 ? "" : "s"} shipped
       </span>
       <span className="text-neutral-700">·</span>
       <span className="text-emerald-300">{fmtCount(totalViews)}</span>
