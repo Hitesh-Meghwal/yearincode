@@ -176,6 +176,34 @@ export default async function LandingPage({
             {params?.error ? (
               <p className="text-red-400 text-sm">{params.error}</p>
             ) : null}
+
+            {/* Secondary tool — the Ghosts & Mutuals checker. A compact pill so
+                it's clearly visible and tappable in the hero, but small enough
+                that it never competes with the primary wrap action above. */}
+            <Link
+              href={
+                githubLogin
+                  ? `/ghosts?u=${encodeURIComponent(githubLogin)}`
+                  : "/ghosts"
+              }
+              className="group mt-2 inline-flex items-center gap-2 rounded-full border border-pink-500/50 bg-pink-500/15 px-4 py-2 text-sm font-semibold text-pink-100 shadow-[0_0_20px_-6px_rgba(236,72,153,0.5)] transition-all hover:border-pink-400 hover:bg-pink-500/25 hover:shadow-[0_0_24px_-4px_rgba(236,72,153,0.7)]"
+            >
+              {/* Pulsing dot draws the eye without enlarging the pill. */}
+              <span className="relative flex h-2 w-2" aria-hidden>
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-pink-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-pink-400" />
+              </span>
+              <span aria-hidden>👻</span>
+              <span>
+                {githubLogin
+                  ? "See who follows you back on GitHub"
+                  : "Check GitHub follow-backs — ghosts & mutuals"}
+              </span>
+              <span className="transition-transform group-hover:translate-x-0.5">
+                →
+              </span>
+            </Link>
+
             <p className="text-xs text-neutral-500">
               free · we never read or store your source code, only commit metadata
             </p>
@@ -184,7 +212,6 @@ export default async function LandingPage({
               <SocialProofCopy
                 totalWrappeds={totalWrappeds}
                 totalViews={totalViews}
-                totalDevs={totalDevs}
                 fmtCount={fmtCount}
               />
             </p>
@@ -241,6 +268,10 @@ export default async function LandingPage({
           {new Date().getFullYear()}
         </div>
         <div className="flex items-center justify-center gap-4">
+          <Link href="/ghosts" className="hover:text-neutral-300 transition-colors">
+            Ghosts &amp; Mutuals
+          </Link>
+          <span className="text-neutral-700">·</span>
           <Link href="/privacy" className="hover:text-neutral-300 transition-colors">
             Privacy
           </Link>
@@ -281,17 +312,15 @@ function Feature({
  *
  *   tier 1   0 wrappeds:     "just launched · be the first to ship your wrapped"
  *   tier 2   1-9 wrappeds:   "{N} wrapped(s) shipped · be next →"
- *   tier 3   10+ wrappeds:   "{D} devs have wrapped their year · {V} plays"
+ *   tier 3   10+ wrappeds:   "{N} wrapped(s) shipped · {V} plays"
  */
 function SocialProofCopy({
   totalWrappeds,
   totalViews,
-  totalDevs,
   fmtCount,
 }: {
   totalWrappeds: number;
   totalViews: number;
-  totalDevs: number;
   fmtCount: (n: number) => string;
 }) {
   if (totalWrappeds === 0) {
@@ -321,9 +350,9 @@ function SocialProofCopy({
 
   return (
     <>
-      <span className="text-emerald-300">{fmtCount(totalDevs)}</span>
+      <span className="text-emerald-300">{fmtCount(totalWrappeds)}</span>
       <span className="text-neutral-600">
-        dev{totalDevs === 1 ? "" : "s"} wrapped their year
+        wrapped{totalWrappeds === 1 ? "" : "s"} shipped
       </span>
       <span className="text-neutral-700">·</span>
       <span className="text-emerald-300">{fmtCount(totalViews)}</span>

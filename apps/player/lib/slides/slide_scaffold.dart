@@ -30,12 +30,58 @@ class SlideScaffold extends StatelessWidget {
     // ClipRect is the final safety net — any Positioned that extends past the
     // 540×960 design canvas gets clipped at the slide boundary instead of
     // visually bleeding into the next slide.
+    // Derive a synthwave vertical gradient from the slide's dominant color:
+    // a touch brighter at the top, sinking to a darker, slightly hue-shifted
+    // base at the bottom. Keeps each slide's identity (slideColor) while
+    // giving depth the old flat ColoredBox lacked. The glow orb behind the
+    // content uses the archetype's primary so themed slides read as "lit".
+    final hsl = HSLColor.fromColor(slideColor);
+    final topColor = hsl
+        .withLightness((hsl.lightness + 0.06).clamp(0.0, 1.0))
+        .withSaturation((hsl.saturation + 0.05).clamp(0.0, 1.0))
+        .toColor();
+    final bottomColor = hsl
+        .withLightness((hsl.lightness - 0.10).clamp(0.0, 1.0))
+        .toColor();
+
     return ClipRect(
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Solid color base.
-          ColoredBox(color: slideColor),
+          // Vertical synthwave gradient base (replaces the flat solid block).
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [topColor, slideColor, bottomColor],
+                stops: const [0.0, 0.55, 1.0],
+              ),
+            ),
+          ),
+          // Soft archetype-colored glow orb, upper-center, behind content.
+          // A large blurred radial bloom that makes the hero number/emoji feel
+          // lit from within instead of pasted onto a flat panel.
+          Positioned(
+            top: -120,
+            left: -60,
+            right: -60,
+            child: IgnorePointer(
+              child: Container(
+                height: 460,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      theme.primary.withValues(alpha: 0.28),
+                      theme.primary.withValues(alpha: 0.0),
+                    ],
+                    stops: const [0.0, 1.0],
+                  ),
+                ),
+              ),
+            ),
+          ),
           // Tileable 3px-grid texture overlay — the engineering-paper
           // backdrop. Uses FilterQuality.medium so the grid stays smooth at
           // the non-integer scale ratios the iframe gives us (the canvas is
