@@ -115,17 +115,40 @@ export default async function LandingPage({
             yearincode
           </span>
         </Link>
-        {user ? (
-          <div className="flex items-center gap-5">
-            <Link
-              href="/generate"
-              className="text-sm text-neutral-300 hover:text-white transition-colors"
-            >
-              Your wrapped →
-            </Link>
-            <SignOutLink />
-          </div>
-        ) : null}
+        <div className="flex items-center gap-5">
+          {/* Product Hunt "Featured" badge — sits in the navbar so it's
+              persistently visible across every scroll, not just the hero.
+              Hidden on small phones (would crowd the logo) and shown from
+              sm: up. Auto-updating SVG: PH renders the badge image live so
+              the rank reflects the current standing without any code change. */}
+          <a
+            href="https://www.producthunt.com/products/yearincode?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-yearincode-2"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden sm:inline-block transition-opacity hover:opacity-90"
+            aria-label="yearincode on Product Hunt"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1158848&theme=dark"
+              alt="yearincode on Product Hunt"
+              width={200}
+              height={43}
+              style={{ width: "200px", height: "43px" }}
+            />
+          </a>
+          {user ? (
+            <>
+              <Link
+                href="/generate"
+                className="text-sm text-neutral-300 hover:text-white transition-colors"
+              >
+                Your wrapped →
+              </Link>
+              <SignOutLink />
+            </>
+          ) : null}
+        </div>
       </nav>
 
       {/* Hero */}
