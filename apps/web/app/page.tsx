@@ -116,16 +116,17 @@ export default async function LandingPage({
           </span>
         </Link>
         <div className="flex items-center gap-5">
-          {/* Product Hunt "Featured" badge — sits in the navbar so it's
-              persistently visible across every scroll, not just the hero.
-              Hidden on small phones (would crowd the logo) and shown from
-              sm: up. Auto-updating SVG: PH renders the badge image live so
-              the rank reflects the current standing without any code change. */}
+          {/* Product Hunt "Featured" badge — sits in the navbar, persistently
+              visible across every scroll. Scales responsively: shorter on
+              phones (28px tall) so it fits next to the logo, full size on
+              desktop (43px). `h-* w-auto` keeps the SVG's aspect ratio
+              regardless of breakpoint. Auto-updating: PH renders the SVG
+              live, so the upvote count reflects the current state. */}
           <a
             href="https://www.producthunt.com/products/yearincode?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-yearincode-2"
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:inline-block transition-opacity hover:opacity-90"
+            className="inline-block shrink-0 transition-opacity hover:opacity-90"
             aria-label="yearincode on Product Hunt"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -134,7 +135,7 @@ export default async function LandingPage({
               alt="yearincode on Product Hunt"
               width={200}
               height={43}
-              style={{ width: "200px", height: "43px" }}
+              className="h-7 w-auto sm:h-[43px]"
             />
           </a>
           {user ? (

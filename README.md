@@ -15,6 +15,8 @@ Sign in with GitHub, pick a year, wait ~15 seconds, get a vertical animated reca
 [![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-6F55E7.svg?style=flat-square)](CONTRIBUTING.md)
 
+<a href="https://www.producthunt.com/products/yearincode?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-yearincode-2"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1158848&theme=dark" alt="yearincode — Spotify Wrapped for your GitHub year, no login needed | Product Hunt" width="250" height="54" /></a>
+
 [**Live demo →**](https://yearincode.com) ·
 [Built by Hitesh Meghwal](https://github.com/Hitesh-Meghwal) ·
 [Contributing](CONTRIBUTING.md) ·
@@ -68,7 +70,8 @@ Private repos (token mode) only ever feed the **aggregate totals** — a private
 | GitHub OAuth via Supabase (read-only `public_repo`) to claim + enrich a wrap | `/` (Sign in) |
 | Optional pasted PAT for private-repo totals (used once, never stored) | `/` (include private repos) |
 | **"Since Day One" all-time wrap** — your whole GitHub career, lifetime totals | `/u/{username}/all` (year sentinel `0`) |
-| Per-IP rate limiting on the no-login path | `lib/rateLimit.ts` |
+| **Ghosts & Mutuals checker** — who you follow vs who follows you back | `/ghosts` (type a handle, no login) |
+| Per-IP rate limiting on the no-login paths (wrap + ghosts) | `lib/rateLimit.ts` |
 | Year picker — every year since you joined GitHub + all-time, regenerate | `/generate` |
 | Animated Flutter wasm player — 11 slides, ~55 seconds, synthwave loop | `/u/{username}/{year}` |
 | **Two archetype engines**: 15 yearly (behavior pattern) + 9 lifetime (tenure + scale) | computed server-side |
@@ -126,8 +129,9 @@ yearincode/
 │   ├── web/                        Next.js 16 (App Router) — landing, share, /me, OG, API
 │   │   ├── app/
 │   │   │   ├── (legal)/            Privacy + Terms
-│   │   │   ├── api/                Generate, Cleanup endpoints
+│   │   │   ├── api/                Generate, Ghosts, Cleanup endpoints
 │   │   │   ├── auth/callback/      Captures + persists GitHub provider_token
+│   │   │   ├── ghosts/             Ghosts & Mutuals follow-back checker page
 │   │   │   ├── u/[username]/[year]/  Share page + edge OG card
 │   │   │   ├── opengraph-image.tsx Root OG card
 │   │   │   ├── manifest.ts         PWA manifest

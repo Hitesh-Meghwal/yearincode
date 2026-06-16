@@ -138,6 +138,19 @@ export default function GhostsClient({
     return () => clearInterval(id);
   }, [username, focused]);
 
+  // Detect browser autofill — Chrome/Edge can prefill the input visually
+  // without firing React's onChange, leaving `username` state empty (so the
+  // submit button stays disabled despite the field looking filled). After
+  // mount, read the DOM value and sync it into state if there's a mismatch.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const v = inputRef.current?.value ?? "";
+      if (v && !username) setUsername(v);
+    }, 100);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const canSubmit = username.trim().length > 0 && !loading;
 
   function handleSubmit(e: React.FormEvent) {
@@ -227,6 +240,42 @@ function Results({
     fans: diff.fans.length,
     mutuals: diff.mutuals.length,
   };
+
+  // Empty-account fast path: when the user follows nobody AND has no
+  // followers, every tab and every count is vacuously zero. The per-tab
+  // "everyone follows you back" copy reads broken in that case, so we
+  // short-circuit to a clearer "fresh account" message instead.
+  if (diff.followingCount === 0 && diff.followerCount === 0) {
+    return (
+      <div className="mt-10 text-left">
+        <div className="rise rounded-2xl border border-neutral-800 bg-neutral-950/60 p-6 text-center backdrop-blur-sm">
+          <p className="truncate font-mono text-xs uppercase tracking-wider text-neutral-500">
+            @{diff.username}
+          </p>
+          <p className="mt-3 text-2xl font-black tracking-tight">
+            <span className="text-pink-400">Fresh account.</span>
+          </p>
+          <p className="mt-3 text-sm leading-relaxed text-neutral-400">
+            @{diff.username} doesn&apos;t follow anyone and has no followers yet,
+            so there&apos;s nothing to diff. Try a more active handle to see the
+            checker in action.
+          </p>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+            {SAMPLE_HANDLES.map((h) => (
+              <a
+                key={h}
+                href={`/ghosts?u=${encodeURIComponent(h)}`}
+                className="rounded-full border border-neutral-800 bg-neutral-900/70 px-3 py-1 font-mono text-xs text-neutral-300 transition-colors hover:border-neutral-700 hover:bg-neutral-800/70 hover:text-neutral-100"
+              >
+                @{h}
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const active = TABS.find((t) => t.key === tab)!;
   const list = diff[tab];
 
